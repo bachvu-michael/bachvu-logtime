@@ -39,7 +39,9 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-app.listen(PORT, () => {
+// In production, bind to localhost only — Nginx proxies /api externally
+const HOST = process.env.NODE_ENV === 'production' ? '127.0.0.1' : '0.0.0.0';
+app.listen(PORT, HOST, () => {
   const authStatus = process.env.APP_PASSWORD ? 'password protected' : 'no auth';
-  console.log(`LogTime server running on http://localhost:${PORT} (${authStatus})`);
+  console.log(`LogTime API running on http://${HOST}:${PORT} (${authStatus})`);
 });
