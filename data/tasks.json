@@ -1,0 +1,16 @@
+{
+  "jira": {
+    "DS-4123": "New LLM tookit eBook log-in screen and update the Summer 2026 buttons",
+    "DS-4110": "[UI/UX] Make Affiliate Name Clickable in Opportunities - Marketplace"
+  },
+  "teamwork": {
+    "meeting": [
+      "Backlog grooming VN team",
+      "Daily Meeting",
+      "Sprint Review"
+    ],
+    "support": [
+      "Prepare for internal demo"
+    ]
+  }
+}

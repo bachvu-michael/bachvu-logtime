@@ -1,0 +1,518 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
+// ─── Sidebar ─────────────────────────────────────────────────────────────────
+.sidebar {
+  @include custom-scrollbar(rgba(255,255,255,0.15));
+
+  &__logo {
+    padding: 20px $space-md 16px;
+    border-bottom: 1px solid $sidebar-border;
+    transition: $transition-normal;
+
+    &--collapsed {
+      padding: 20px 0;
+      text-align: center;
+    }
+  }
+
+  &__icon {
+    width: 36px;
+    height: 36px;
+    border-radius: $radius-md;
+    background: $primary-gradient;
+    @include flex-center;
+    font-size: 18px;
+    box-shadow: 0 4px 12px rgba(67, 97, 238, 0.35);
+  }
+
+  &__name {
+    font-weight: 700;
+    font-size: 16px;
+    margin-top: $space-sm;
+    color: $text-inverse;
+    letter-spacing: -0.2px;
+  }
+
+  &__tagline {
+    font-size: 11px;
+    color: $sidebar-text;
+    margin-top: 2px;
+  }
+
+  &__footer {
+    position: absolute;
+    bottom: 56px;
+    left: 0;
+    right: 0;
+    padding: 0 $space-md;
+    font-size: 11px;
+    color: rgba(148, 163, 184, 0.6);
+    text-align: center;
+  }
+
+  &__divider {
+    height: 1px;
+    background: $sidebar-border;
+    margin: $space-sm $space-md;
+  }
+}
+
+// ─── Ant Design Overrides ─────────────────────────────────────────────────────
+
+// Layout
+.ant-layout-sider {
+  .ant-layout-sider-trigger {
+    background: rgba(255,255,255,0.05) !important;
+    border-top: 1px solid $sidebar-border;
+    color: $sidebar-text !important;
+    transition: $transition-normal;
+
+    &:hover { background: rgba(255,255,255,0.1) !important; }
+  }
+}
+
+// Menu
+.ant-menu-dark {
+  background: transparent !important;
+
+  .ant-menu-item {
+    border-radius: $radius-sm !important;
+    margin: 2px 8px !important;
+    width: calc(100% - 16px) !important;
+    color: $sidebar-text;
+    font-size: 13.5px;
+    font-weight: 500;
+    transition: $transition-fast;
+
+    .anticon { font-size: 16px !important; }
+
+    &:hover {
+      background: $sidebar-hover !important;
+      color: #E2E8F0 !important;
+    }
+
+    &.ant-menu-item-selected {
+      background: $sidebar-active !important;
+      color: $text-inverse !important;
+      box-shadow: 0 2px 8px rgba(67, 97, 238, 0.4);
+
+      &::after { display: none !important; }
+    }
+  }
+
+  .ant-menu-item-divider {
+    border-color: $sidebar-border !important;
+    margin: $space-sm 0 !important;
+  }
+}
+
+// Cards
+.ant-card {
+  box-shadow: $shadow-card !important;
+  border: 1px solid $border-light !important;
+  border-radius: $radius-lg !important;
+  overflow: hidden;
+
+  .ant-card-head {
+    border-bottom: 1px solid $border-light !important;
+    padding: 0 20px !important;
+    min-height: 52px;
+
+    .ant-card-head-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: $text-primary;
+      padding: 14px 0;
+    }
+  }
+
+  .ant-card-body {
+    padding: 20px !important;
+  }
+}
+
+// Form
+.ant-form-item-label > label {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: $text-secondary !important;
+}
+
+.ant-input,
+.ant-input-number,
+.ant-picker,
+.ant-select-selector,
+.ant-input-affix-wrapper {
+  border-color: $border-default !important;
+  border-radius: $radius-sm !important;
+  font-size: 13.5px !important;
+  transition: $transition-fast !important;
+
+  &:hover { border-color: $primary !important; }
+  &:focus, &.ant-input-focused, &.ant-picker-focused,
+  &.ant-select-focused .ant-select-selector,
+  &.ant-input-affix-wrapper-focused {
+    border-color: $primary !important;
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.12) !important;
+  }
+}
+
+// Table
+.ant-table {
+  .ant-table-thead > tr > th {
+    background: #F8FAFF !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: $text-secondary !important;
+    border-bottom: 1px solid $border-default !important;
+    padding: 10px 16px !important;
+  }
+
+  .ant-table-tbody > tr > td {
+    padding: 12px 16px !important;
+    border-bottom: 1px solid $border-light !important;
+    font-size: 13.5px;
+  }
+
+  .ant-table-tbody > tr:hover > td {
+    background: #F0F4FF !important;
+  }
+
+  .ant-table-tbody > tr:last-child > td {
+    border-bottom: none !important;
+  }
+
+  // Week banding
+  .ant-table-tbody > tr.row-week-odd > td  { background: #FFFFFF; }
+  .ant-table-tbody > tr.row-week-even > td { background: #F4F7FF; }
+  .ant-table-tbody > tr.row-week-odd:hover > td,
+  .ant-table-tbody > tr.row-week-even:hover > td { background: #E8EEFF !important; }
+}
+
+// Statistic
+.ant-statistic {
+  .ant-statistic-title {
+    font-size: 12px !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .ant-statistic-content {
+    font-size: 26px !important;
+    font-weight: 700 !important;
+    line-height: 1.2;
+  }
+}
+
+// Buttons
+.ant-btn-primary {
+  background: $primary-gradient !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(67, 97, 238, 0.3) !important;
+  font-weight: 500;
+
+  &:hover {
+    background: linear-gradient(135deg, $primary-dark 0%, #6D28D9 100%) !important;
+    box-shadow: 0 4px 12px rgba(67, 97, 238, 0.4) !important;
+    transform: translateY(-1px);
+  }
+
+  &:active { transform: translateY(0); }
+}
+
+// Tags
+.ant-tag {
+  border-radius: $radius-pill !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  border: none !important;
+  padding: 1px 10px !important;
+}
+
+// Drawer
+.ant-drawer-header {
+  border-bottom: 1px solid $border-light !important;
+  padding: 16px 20px !important;
+
+  .ant-drawer-title {
+    font-size: 15px;
+    font-weight: 600;
+  }
+}
+
+.ant-drawer-footer {
+  border-top: 1px solid $border-light !important;
+  padding: 12px 20px !important;
+}
+
+// Popconfirm
+.ant-popconfirm-message-title {
+  font-weight: 600;
+}
+
+// Message
+.ant-message-notice-content {
+  border-radius: $radius-md !important;
+  box-shadow: $shadow-lg !important;
+  font-size: 13.5px !important;
+}
+
+// Select
+.ant-select-dropdown {
+  border-radius: $radius-md !important;
+  box-shadow: $shadow-lg !important;
+  border: 1px solid $border-light !important;
+}
+
+// Spin
+.ant-spin-dot-item {
+  background-color: $primary !important;
+}
+
+// Alert
+.ant-alert {
+  border-radius: $radius-md !important;
+  font-size: 13.5px !important;
+}
+
+// Input search clear button
+.ant-input-search > .ant-input-group > .ant-input-group-addon .ant-input-search-button {
+  border-radius: 0 $radius-sm $radius-sm 0 !important;
+}
+
+// ─── Stat cards ───────────────────────────────────────────────────────────────
+.stat-card {
+  border-radius: $radius-lg !important;
+  border: none !important;
+  box-shadow: $shadow-md !important;
+  overflow: hidden;
+  position: relative;
+  transition: $transition-normal;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: $shadow-lg !important;
+  }
+
+  &__icon {
+    width: 44px;
+    height: 44px;
+    border-radius: $radius-md;
+    background: rgba(255, 255, 255, 0.2);
+    @include flex-center;
+    font-size: 20px;
+    margin-bottom: $space-md;
+    backdrop-filter: blur(4px);
+  }
+
+  &__label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: rgba(255,255,255,0.75);
+    margin-bottom: 4px;
+  }
+
+  &__value {
+    font-size: 28px;
+    font-weight: 800;
+    color: #FFFFFF;
+    line-height: 1;
+    letter-spacing: -0.5px;
+  }
+
+  &__sub {
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+    margin-top: 4px;
+  }
+
+  &--blue   { background: $stat-blue; }
+  &--purple { background: $stat-purple; }
+  &--teal   { background: $stat-teal; }
+  &--orange { background: $stat-orange; }
+
+  .ant-card-body { padding: 20px !important; }
+}
+
+// ─── Task type segmented control ─────────────────────────────────────────────
+.ant-segmented {
+  background: $border-light !important;
+  border-radius: $radius-md !important;
+  padding: 3px !important;
+
+  .ant-segmented-item {
+    border-radius: $radius-sm !important;
+    font-weight: 500;
+    font-size: 13.5px;
+    color: $text-secondary;
+    transition: $transition-fast;
+
+    &:hover { color: $text-primary; }
+  }
+
+  .ant-segmented-item-selected {
+    background: $primary-gradient !important;
+    color: #fff !important;
+    box-shadow: 0 2px 8px rgba(67,97,238,0.3) !important;
+
+    .anticon { color: #fff; }
+  }
+
+  .ant-segmented-thumb {
+    background: $primary-gradient !important;
+    border-radius: $radius-sm !important;
+  }
+}
+
+// ─── Daily progress bar ───────────────────────────────────────────────────────
+.daily-progress {
+  background: #F8FAFF;
+  border: 1px solid #DBEAFE;
+  border-radius: $radius-md;
+  padding: 12px 16px 10px;
+  margin-top: 4px;
+
+  &--danger {
+    background: #FFF1F0;
+    border-color: #FFCCC7;
+  }
+
+  &__header {
+    @include flex-between;
+    margin-bottom: 6px;
+  }
+
+  &__label {
+    font-size: 12px;
+    font-weight: 500;
+    color: $text-secondary;
+  }
+
+  &__right {
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  &__segments {
+    display: flex;
+    gap: $space-md;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+
+  &__seg {
+    font-size: 11.5px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: $radius-pill;
+
+    &--used {
+      background: rgba(67, 97, 238, 0.1);
+      color: $primary-dark;
+    }
+
+    &--new {
+      background: rgba(82, 196, 26, 0.12);
+      color: #389e0d;
+
+      &--over {
+        background: rgba(245, 34, 45, 0.1);
+        color: #cf1322;
+      }
+    }
+
+    &--max {
+      background: $border-light;
+      color: $text-muted;
+      margin-left: auto;
+    }
+  }
+
+  // Override AntD Progress trail
+  .ant-progress-bg { transition: width 0.3s ease !important; }
+}
+
+// ─── MD Viewer ────────────────────────────────────────────────────────────────
+.md-body {
+  font-size: 14px;
+  line-height: 1.75;
+  color: $text-primary;
+
+  h1 { font-size: 22px; font-weight: 700; margin: 24px 0 12px; color: $text-primary; letter-spacing: -0.3px; }
+  h2 {
+    font-size: 16px; font-weight: 600; margin: 22px 0 8px;
+    color: $primary; border-bottom: 2px solid $primary-light;
+    padding-bottom: 6px;
+  }
+  h3 { font-size: 14px; font-weight: 600; margin: 16px 0 6px; color: $text-primary; }
+  p  { margin: 6px 0; }
+  ul, ol { padding-left: 20px; margin: 6px 0; }
+  li { margin: 4px 0; }
+  strong { font-weight: 600; color: $text-primary; }
+  hr { border: none; border-top: 1px solid $border-default; margin: 20px 0; }
+
+  code {
+    background: #F1F5F9;
+    padding: 2px 7px;
+    border-radius: $radius-sm;
+    font-family: $font-mono;
+    font-size: 13px;
+    color: #E11D48;
+  }
+
+  pre {
+    background: #0F172A;
+    color: #E2E8F0;
+    padding: 18px 22px;
+    border-radius: $radius-lg;
+    overflow-x: auto;
+    margin: 14px 0;
+    @include custom-scrollbar(rgba(255,255,255,0.2));
+
+    code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      font-size: 13px;
+      font-family: $font-mono;
+    }
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 12px 0;
+    font-size: 13.5px;
+  }
+
+  th {
+    background: $primary-light;
+    color: $primary-dark;
+    font-weight: 600;
+    padding: 9px 14px;
+    border: 1px solid #DBEAFE;
+    text-align: left;
+  }
+
+  td {
+    padding: 8px 14px;
+    border: 1px solid $border-light;
+  }
+
+  tr:nth-child(even) td { background: #FAFBFF; }
+
+  blockquote {
+    border-left: 3px solid $primary;
+    margin: 10px 0;
+    padding: 6px 14px;
+    background: $primary-light;
+    border-radius: 0 $radius-sm $radius-sm 0;
+    font-style: italic;
+    color: $text-secondary;
+  }
+}

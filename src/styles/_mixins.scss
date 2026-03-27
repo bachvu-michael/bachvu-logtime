@@ -1,0 +1,81 @@
+@use 'sass:color';
+@use 'variables' as *;
+
+// ─── Flex helpers ────────────────────────────────────────────────────────────
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-row($gap: $space-md) {
+  display: flex;
+  align-items: center;
+  gap: $gap;
+}
+
+// ─── Card ────────────────────────────────────────────────────────────────────
+@mixin card($shadow: $shadow-card) {
+  background: $bg-card;
+  border-radius: $radius-lg;
+  box-shadow: $shadow;
+  border: 1px solid $border-light;
+}
+
+// ─── Gradient text ───────────────────────────────────────────────────────────
+@mixin gradient-text($gradient: $primary-gradient) {
+  background: $gradient;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+// ─── Truncate ────────────────────────────────────────────────────────────────
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// ─── Focus ring ──────────────────────────────────────────────────────────────
+@mixin focus-ring($color: $primary) {
+  &:focus-visible {
+    outline: 2px solid $color;
+    outline-offset: 2px;
+  }
+}
+
+// ─── Hover lift ──────────────────────────────────────────────────────────────
+@mixin hover-lift {
+  transition: $transition-normal;
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-lg;
+  }
+}
+
+// ─── Responsive ──────────────────────────────────────────────────────────────
+@mixin mobile {
+  @media (max-width: 768px) { @content; }
+}
+
+@mixin tablet {
+  @media (max-width: 1024px) { @content; }
+}
+
+// ─── Scrollbar ───────────────────────────────────────────────────────────────
+@mixin custom-scrollbar($thumb: #CBD5E1, $track: transparent) {
+  &::-webkit-scrollbar { width: 6px; height: 6px; }
+  &::-webkit-scrollbar-track { background: $track; }
+  &::-webkit-scrollbar-thumb {
+    background: $thumb;
+    border-radius: $radius-pill;
+    &:hover { background: color.scale($thumb, $lightness: -10%); }
+  }
+}
