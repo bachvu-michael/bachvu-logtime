@@ -9,7 +9,8 @@
     "dev:server": "tsx watch server/index.ts",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "cross-env NODE_ENV=production tsx server/index.ts"
+    "start:win": "cross-env NODE_ENV=production tsx server/index.ts",
+    "start": "NODE_ENV=production tsx server/index.ts"
   },
   "dependencies": {
     "@ant-design/icons": "^6.1.0",
