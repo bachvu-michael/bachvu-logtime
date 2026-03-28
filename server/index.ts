@@ -5,6 +5,8 @@ import { fileURLToPath } from 'url';
 import fs from 'fs';
 import logsRouter from './routes/logs.js';
 import tasksRouter from './routes/tasks.js';
+import invoicesRouter from './routes/invoices.js';
+import pdfRouter from './routes/pdf.js';
 import { authRouter, requireAuth } from './auth.js';
 
 // Load .env if present (no dotenv dependency needed)
@@ -17,7 +19,7 @@ if (fs.existsSync(envFile)) {
 }
 
 const app = express();
-const PORT = parseInt(process.env.API_PORT || process.env.PORT || '3001');
+const PORT = parseInt(process.env.API_PORT || '3001');
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 app.use(cors());
@@ -29,6 +31,8 @@ app.use('/api/auth', authRouter);
 // Protected API routes
 app.use('/api/logs', requireAuth, logsRouter);
 app.use('/api/tasks', requireAuth, tasksRouter);
+app.use('/api/invoices', requireAuth, invoicesRouter);
+app.use('/api/pdf',     requireAuth, pdfRouter);
 
 // Serve built frontend in production
 if (process.env.NODE_ENV === 'production') {

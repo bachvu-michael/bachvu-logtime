@@ -3,14 +3,14 @@ import { ConfigProvider, Layout, Menu, theme, Tooltip } from 'antd';
 import { ClockCircleOutlined, BarChartOutlined, FileTextOutlined, CalendarOutlined, LogoutOutlined } from '@ant-design/icons';
 import { LogTimePage } from './pages/LogTimePage';
 import { DashboardPage } from './pages/DashboardPage';
-import { PromptPage } from './pages/PromptPage';
 import { CalendarPage } from './pages/CalendarPage';
+import { InvoicePage } from './pages/InvoicePage';
 import { LoginPage } from './pages/LoginPage';
 import { checkAuthRequired, isAuthenticated, logout } from './api/auth';
 
 const { Sider, Content } = Layout;
 
-type Page = 'dashboard' | 'log' | 'calendar' | 'prompt';
+type Page = 'dashboard' | 'log' | 'calendar' | 'invoices';
 
 export default function App() {
   const [page, setPage] = useState<Page>('dashboard');
@@ -108,8 +108,8 @@ export default function App() {
               { key: 'dashboard', icon: <BarChartOutlined />, label: 'Dashboard' },
               { key: 'log', icon: <ClockCircleOutlined />, label: 'Log Time' },
               { key: 'calendar', icon: <CalendarOutlined />, label: 'Calendar' },
+              { key: 'invoices', icon: <FileTextOutlined />, label: 'Invoices' },
               { type: 'divider' },
-              { key: 'prompt', icon: <FileTextOutlined />, label: 'Reuse Prompt' },
             ]}
           />
 
@@ -144,7 +144,7 @@ export default function App() {
           {page === 'log' && <LogTimePage />}
           {page === 'dashboard' && <DashboardPage />}
           {page === 'calendar' && <CalendarPage />}
-          {page === 'prompt' && <PromptPage />}
+          {page === 'invoices' && <InvoicePage />}
         </Content>
       </Layout>
     </ConfigProvider>

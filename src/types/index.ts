@@ -56,3 +56,38 @@ export interface LogEntry {
 export type LogEntryInput = Omit<LogEntry, 'id' | 'createdAt'>;
 
 export const MAX_DAILY_MINUTES = 480; // 8h
+
+// ── Invoice ───────────────────────────────────────────────────────────────────
+export type InvoiceType = 'invoice' | 'credit_note';
+export type InvoiceStatus = 'pending' | 'paid' | 'overtime';
+
+export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
+  pending:  'Pending',
+  paid:     'Paid',
+  overtime: 'Overtime',
+};
+
+export const INVOICE_STATUS_COLORS: Record<InvoiceStatus, string> = {
+  pending:  'orange',
+  paid:     'green',
+  overtime: 'red',
+};
+export interface InvoiceItem {
+  description: string;
+  price: number;      // price in VND
+  quantity: number;
+}
+
+export interface Invoice {
+  id: string;
+  invoiceType: InvoiceType; // 'invoice' | 'credit_note'
+  domain: string;           // client / project domain
+  total: number;            // sum of price * quantity across items
+  items: InvoiceItem[];
+  datetime: string;         // YYYY-MM-DD
+  description?: string;     // shown in the Note section of the invoice
+  status: InvoiceStatus;
+  createdAt: number;
+}
+
+export type InvoiceInput = Omit<Invoice, 'id' | 'createdAt'>;

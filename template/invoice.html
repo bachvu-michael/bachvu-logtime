@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{INVOICE_NO}}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ── Print: A4, no margins ── */
+      @page {
+        size: A4;
+        margin: 0;
+      }
+
+      @media print {
+        .toolbar {
+          display: none !important;
+        }
+        .toolbar-spacer {
+          display: none !important;
+        }
+        html,
+        body {
+          background: #fff !important;
+          padding: 0 !important;
+        }
+        .page {
+          box-shadow: none !important;
+          margin: 0 !important;
+          width: 100% !important;
+          min-height: 100% !important;
+        }
+      }
+
+      /* ── Base ── */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        font-family: "Inter", Arial, sans-serif;
+        background: #e8edf5;
+        color: #1e293b;
+        font-size: 14px;
+      }
+
+      /* ── Toolbar (screen only) ── */
+      .toolbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: #0d2f6e;
+        color: #fff;
+        padding: 10px 32px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        z-index: 100;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+        gap: 12px;
+      }
+      .toolbar-info {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        font-size: 14px;
+      }
+      .toolbar-badge {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 4px;
+        padding: 3px 10px;
+        font-weight: 600;
+        font-size: 13px;
+      }
+      .toolbar-domain {
+        color: #93c5fd;
+        font-size: 13px;
+      }
+      .toolbar-btn {
+        background: #2563eb;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 8px 20px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: background 0.15s;
+      }
+      .toolbar-btn:hover {
+        background: #1d4ed8;
+      }
+      .toolbar-spacer {
+        height: 52px;
+      }
+
+      /* ── A4 page ── */
+      .page {
+        width: 210mm;
+        min-height: 297mm;
+        background: #fff;
+        margin: 24px auto;
+        box-shadow: 0 4px 32px rgba(0, 0, 0, 0.18);
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ── Header ── */
+      .header {
+        background: linear-gradient(120deg, #0b2c6b 0%, #1a56b0 100%);
+        padding: 36px 48px 0;
+        flex-shrink: 0;
+      }
+      .header-inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding-bottom: 28px;
+      }
+      .header-title {
+        font-size: 56px;
+        font-weight: 900;
+        color: #fff;
+        letter-spacing: 3px;
+        line-height: 1;
+      }
+      .header-right-info {
+        text-align: right;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+      }
+      .header-no {
+        font-size: 15px;
+        font-weight: 700;
+        color: #fff;
+        margin-top: 10px;
+        letter-spacing: 0.5px;
+      }
+
+      .header-year {
+        font-size: 15px;
+        font-weight: 700;
+        color: #fff;
+        margin-top: 10px;
+        letter-spacing: 0.5px;
+      }
+      .header-wave {
+        display: block;
+        width: 100%;
+        height: 56px;
+        margin-bottom: -1px;
+      }
+
+      /* ── Body ── */
+      .body {
+        padding: 32px 48px 40px;
+        flex: 1;
+      }
+
+      /* Bill To / From */
+      .parties {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 28px;
+      }
+      .parties .label {
+        font-size: 16px;
+        font-weight: 700;
+        color: #0b2c6b;
+        margin-bottom: 6px;
+      }
+      .parties .from {
+        text-align: right;
+      }
+      .parties p {
+        font-size: 14px;
+        color: #334155;
+        line-height: 1.7;
+      }
+
+      .date-line {
+        font-size: 14px;
+        color: #334155;
+        margin-bottom: 20px;
+      }
+
+      /* ── Items table ── */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      thead tr {
+        background: #1a56b0;
+      }
+      thead th {
+        color: #fff;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 11px 14px;
+        text-align: left;
+      }
+      thead th.center {
+        text-align: center;
+      }
+      thead th.right {
+        text-align: right;
+      }
+      tbody td {
+        padding: 10px 14px;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 13.5px;
+        color: #1e293b;
+        height: 36px;
+      }
+      td.center {
+        text-align: center;
+      }
+      td.right {
+        text-align: right;
+      }
+
+      /* ── Bottom ── */
+      .bottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-top: 28px;
+        gap: 32px;
+      }
+      .bottom-left {
+        flex: 1;
+      }
+      .bottom-right {
+        min-width: 240px;
+      }
+
+      .note-title,
+      .payment-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: #0b2c6b;
+        margin-bottom: 6px;
+      }
+      .note-text {
+        font-size: 13px;
+        color: #475569;
+        line-height: 1.7;
+        margin-bottom: 20px;
+      }
+      .payment-grid {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 4px 12px;
+        font-size: 13px;
+      }
+      .payment-grid .key {
+        font-weight: 700;
+        color: #1e293b;
+        white-space: nowrap;
+      }
+      .payment-grid .val {
+        color: #475569;
+      }
+
+      /* Sub Total */
+      .subtotal-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #1a56b0;
+        color: #fff;
+        padding: 12px 16px;
+        border-radius: 6px 6px 0 0;
+        font-size: 15px;
+        font-weight: 600;
+      }
+
+      /* QR box */
+      .qr-box {
+        border: 1px solid #cbd5e1;
+        border-top: none;
+        border-radius: 0 0 6px 6px;
+        padding: 14px;
+        text-align: center;
+        background: #f8faff;
+      }
+      .qr-box img {
+        width: 200px;
+        height: 200px;
+        object-fit: contain;
+      }
+      .qr-label {
+        margin-top: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #0b2c6b;
+      }
+      .qr-sub {
+        font-size: 11px;
+        color: #64748b;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Toolbar (screen only, hidden in print) -->
+    <div class="toolbar">
+      <div class="toolbar-info">
+        <span class="toolbar-badge">{{INVOICE_NO}}</span>
+        <span class="toolbar-domain">{{DOMAIN}}</span>
+        <span style="color: #93c5fd; font-size: 13px">{{DATE}}</span>
+      </div>
+      <button class="toolbar-btn" onclick="window.print()">
+        ⬇&nbsp; Save as PDF
+      </button>
+    </div>
+    <div class="toolbar-spacer"></div>
+
+    <!-- A4 Page -->
+    <div class="page">
+      <!-- Header -->
+      <div class="header">
+        <div class="header-inner">
+          <div class="header-title">HOÁ ĐƠN</div>
+          <div class="header-right-info">
+            <div class="header-no">NO: {{INVOICE_NO}}</div>
+            <div class="header-year">{{DATE}}</div>
+          </div>
+        </div>
+        <svg
+          class="header-wave"
+          viewBox="0 0 1200 56"
+          preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M0,28 C200,56 400,0 600,28 C800,56 1000,0 1200,28 L1200,56 L0,56 Z"
+            fill="#ffffff"
+          />
+        </svg>
+      </div>
+
+      <!-- Body -->
+      <div class="body">
+        <!-- Bill To / From -->
+        <div class="parties">
+          <div class="bill-to">
+            <div class="label">Bill To:</div>
+            <p>{{DOMAIN}}</p>
+          </div>
+          <div class="from">
+            <div class="label">From:</div>
+            <p>Vũ Minh Bạch</p>
+            <p>0399757695</p>
+            <p>Phường Lagi, Tỉnh Lâm Đồng</p>
+          </div>
+        </div>
+
+        <!-- Date -->
+        <p class="date-line">Date: {{DATE}}</p>
+
+        <!-- Items table -->
+        <table>
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th class="center">Qty</th>
+              <th class="right">Price</th>
+              <th class="right">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{ITEMS_ROWS}}
+          </tbody>
+        </table>
+
+        <!-- Bottom: Note + Payment | SubTotal + QR -->
+        <div class="bottom">
+          <div class="bottom-left">
+            <div class="note-title">Note:</div>
+            <div class="note-text">{{NOTE}}</div>
+
+            <div class="payment-title">Payment Information:</div>
+            <div class="payment-grid">
+              <span class="key">Bank:</span>
+              <span class="val">Vietcombank</span>
+              <span class="key">No Bank:</span>
+              <span class="val">0181003627857</span>
+              <span class="key">Email:</span>
+              <span class="val">cannada000@gmail.com</span>
+            </div>
+          </div>
+
+          <div class="bottom-right">
+            <div class="subtotal-row">
+              <span>Sub Total</span>
+              <span>{{TOTAL}}</span>
+            </div>
+            <div class="qr-box">
+              <img src="{{QR_URL}}" alt="VietQR" />
+              <div class="qr-label">VU MINH BACH</div>
+              <div class="qr-sub">0181003627857 · PGD Mỹ Toàn</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /body -->
+    </div>
+    <!-- /page -->
+  </body>
+</html>
