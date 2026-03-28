@@ -65,12 +65,23 @@ router.post('/invoice', async (req: Request, res: Response) => {
   try {
     const html = buildHtml(invoice);
 
+    const executablePath =
+      process.env.CHROME_PATH ||
+      (process.platform === 'linux'
+        ? [
+            '/usr/bin/chromium-browser',
+            '/usr/bin/chromium',
+            '/snap/bin/chromium',
+          ].find(p => { try { require('fs').accessSync(p); return true; } catch { return false; } })
+        : undefined);
+
     browser = await puppeteer.launch({
       headless: true,
+      ...(executablePath ? { executablePath } : {}),
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',   // prevents crashes on Linux (small /dev/shm)
+        '--disable-dev-shm-usage',
         '--disable-gpu',
         '--no-first-run',
         '--no-zygote',
