@@ -23,7 +23,7 @@ function buildHtml(invoice: Invoice): string {
   const templatePath = path.join(process.cwd(), 'template', 'invoice.html');
   const template = fs.readFileSync(templatePath, 'utf-8');
 
-  const invoiceNo = `INV-${invoice.id.slice(0, 5).toUpperCase()}-1`;
+  const invoiceNo = `INV-${invoice.id.slice(0, 5).toUpperCase()}-${invoice.datetime.split('T')[0].replace(/-/g, '')}`;
 
   const qrUrl =
     `https://img.vietqr.io/image/970436-0181003627857-compact2.png` +

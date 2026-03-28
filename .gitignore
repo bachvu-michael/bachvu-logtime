@@ -25,6 +25,7 @@ dist-ssr
 
 data/
 .env
+.env-prod
 CLAUDE.md
 DEPLOY.md
 PROMPT.md

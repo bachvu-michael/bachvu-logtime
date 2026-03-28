@@ -16,7 +16,7 @@ function esc(s: string) {
 }
 
 function buildPreviewHtml(invoice: Invoice): string {
-  const invoiceNo = `INV-${invoice.id.slice(0, 5).toUpperCase()}`;
+  const invoiceNo = `INV-${invoice.id.slice(0, 5).toUpperCase()}-${invoice.datetime.split('T')[0].replace(/-/g, '')}`;
 
   const qrUrl =
     `https://img.vietqr.io/image/970436-0181003627857-compact2.png` +
