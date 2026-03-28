@@ -67,7 +67,14 @@ router.post('/invoice', async (req: Request, res: Response) => {
 
     browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',   // prevents crashes on Linux (small /dev/shm)
+        '--disable-gpu',
+        '--no-first-run',
+        '--no-zygote',
+      ],
     });
 
     const page = await browser.newPage();
@@ -83,8 +90,9 @@ router.post('/invoice', async (req: Request, res: Response) => {
     res.setHeader('Content-Disposition', `attachment; filename="${invoiceNo}.pdf"`);
     res.send(Buffer.from(pdf));
   } catch (err) {
-    console.error('PDF generation failed:', err);
-    res.status(500).json({ error: 'Failed to generate PDF' });
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('PDF generation failed:', msg);
+    res.status(500).json({ error: 'Failed to generate PDF', detail: msg });
   } finally {
     await browser?.close();
   }
