@@ -2,10 +2,10 @@ import { useState, useMemo } from 'react';
 import {
   Table, Tag, Space, Button, Popconfirm, Drawer, Form,
   Input, InputNumber, DatePicker, AutoComplete, Select,
-  message, Typography, Card, Row, Col,
+  message, Typography, Card, Row, Col, Segmented,
 } from 'antd';
-import { EditOutlined, DeleteOutlined, ThunderboltOutlined, TeamOutlined, CoffeeOutlined, DownloadOutlined, FileExcelOutlined } from '@ant-design/icons';
-import type { ColumnsType } from 'antd/es/table';
+import { EditOutlined, DeleteOutlined, ThunderboltOutlined, TeamOutlined, CoffeeOutlined, DownloadOutlined, FileExcelOutlined, UnorderedListOutlined, TagsOutlined, CopyOutlined, CheckCircleOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import type { ColumnsType, ColumnType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import { startOfWeek, endOfWeek, isWithinInterval, parseISO, getISOWeek } from 'date-fns';
 import {
@@ -56,17 +56,60 @@ interface TableRow {
   weekNum: number;          // ISO week number (for row banding)
 }
 
+interface TicketRow {
+  key: string;
+  date: string;
+  taskType: string;
+  ticketKey: string;
+  title: string;
+  teamworkType?: string;
+  minutes: number;
+}
+
 export function TimeLogTable({ logs, loading, onUpdated, onDeleted }: Props) {
   const todayStr = dayjs().format('YYYY-MM-DD');
   const currentMonth = dayjs().format('YYYY-MM');
 
   const [selectedMonth, setSelectedMonth] = useState<string>(currentMonth);
   const [search, setSearch] = useState('');
+  const [viewMode, setViewMode] = useState<'date' | 'ticket'>('date');
   const [editTarget, setEditTarget]       = useState<LogEntry | null>(null);
   const [editTaskType, setEditTaskType]   = useState<TaskType>('jira');
   const [editTeamworkType, setEditTeamworkType] = useState<TeamworkType>('meeting');
   const [form] = Form.useForm();
   const [saving, setSaving] = useState(false);
+
+  // ── Logged IDs (persisted) ──────────────────────────────────────────────────
+  const [loggedIds, setLoggedIds] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem('logtime_logged_ids');
+      return raw ? new Set(JSON.parse(raw)) : new Set();
+    } catch { return new Set(); }
+  });
+  const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
+
+  function applyLogged(ids: string[], logged: boolean) {
+    setLoggedIds(prev => {
+      const next = new Set(prev);
+      ids.forEach(id => logged ? next.add(id) : next.delete(id));
+      localStorage.setItem('logtime_logged_ids', JSON.stringify([...next]));
+      return next;
+    });
+    setSelectedKeys([]);
+  }
+
+  function copyText(text: string) {
+    navigator.clipboard.writeText(text).then(
+      () => message.success('Copied!', 1),
+      () => message.error('Copy failed'),
+    );
+  }
+
+  function copyTimeStr(minutes: number): string {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return h === 0 ? String(m) : `${h}:${String(m).padStart(2, '0')}`;
+  }
 
   // ── Available months from logs ──────────────────────────────────────────────
   const availableMonths = useMemo(() => {
@@ -147,6 +190,22 @@ export function TimeLogTable({ logs, loading, onUpdated, onDeleted }: Props) {
     }
     return rows;
   }, [filtered, todayStr]);
+
+  // ── Ticket summary rows (flat, sorted by date desc) ─────────────────────────
+  const ticketRows = useMemo((): TicketRow[] =>
+    filtered
+      .filter(l => l.taskType !== 'takeoff')
+      .map(log => ({
+        key: log.id,
+        date: log.date,
+        taskType: log.taskType ?? (entryKey(log) ? 'jira' : 'teamwork'),
+        ticketKey: entryKey(log),
+        title: entryTitle(log),
+        teamworkType: log.teamworkType,
+        minutes: entryMinutes(log),
+      }))
+      .sort((a, b) => b.date.localeCompare(a.date)),
+  [filtered]);
 
   // ── Edit helpers ────────────────────────────────────────────────────────────
   function openEdit(record: LogEntry) {
@@ -335,12 +394,117 @@ export function TimeLogTable({ logs, loading, onUpdated, onDeleted }: Props) {
     },
   ];
 
+  // ── Ticket summary columns ───────────────────────────────────────────────
+  const ticketColumns: ColumnType<TicketRow>[] = [
+    {
+      title: 'Date',
+      dataIndex: 'date',
+      key: 'date',
+      width: 130,
+      sorter: (a, b) => a.date.localeCompare(b.date),
+      defaultSortOrder: 'descend' as const,
+      render: (date: string) => (
+        <Typography.Text strong style={{ fontSize: 13 }}>
+          {date === todayStr ? 'Today' : formatDisplay(date)}
+        </Typography.Text>
+      ),
+    },
+    {
+      title: 'Type',
+      dataIndex: 'taskType',
+      key: 'taskType',
+      width: 180,
+      sorter: (a, b) => a.taskType.localeCompare(b.taskType),
+      render: (type: string, row) => {
+        if (type === 'teamwork' && row.teamworkType) {
+          return (
+            <Space size={4}>
+              <Tag icon={<TeamOutlined />} color="purple">Teamwork</Tag>
+              <Tag color={TEAMWORK_TYPE_COLORS[row.teamworkType as TeamworkType]} style={{ fontWeight: 600 }}>
+                {TEAMWORK_TYPE_LABELS[row.teamworkType as TeamworkType]}
+              </Tag>
+            </Space>
+          );
+        }
+        return type === 'jira'
+          ? <Tag icon={<ThunderboltOutlined />} color="blue">Jira</Tag>
+          : <Tag icon={<TeamOutlined />} color="purple">Teamwork</Tag>;
+      },
+    },
+    {
+      title: 'Ticket / Task',
+      key: 'task',
+      sorter: (a, b) => {
+        const ka = a.taskType === 'jira' ? a.ticketKey : a.title;
+        const kb = b.taskType === 'jira' ? b.ticketKey : b.title;
+        return ka.localeCompare(kb);
+      },
+      render: (_, row) => {
+        if (row.taskType === 'jira') {
+          return (
+            <Space size={6}>
+              {row.ticketKey && <Tag color={tagColor(row.ticketKey)} style={{ fontWeight: 600 }}>{row.ticketKey}</Tag>}
+              <Typography.Text style={{ fontSize: 13 }}>{row.title || '—'}</Typography.Text>
+            </Space>
+          );
+        }
+        return <Typography.Text style={{ fontSize: 13 }}>{row.title || '—'}</Typography.Text>;
+      },
+    },
+    {
+      title: 'Time',
+      dataIndex: 'minutes',
+      key: 'minutes',
+      width: 90,
+      align: 'right' as const,
+      sorter: (a, b) => a.minutes - b.minutes,
+      render: (v: number) => <Tag color="blue" style={{ fontWeight: 600, fontSize: 13 }}>{minutesToDisplay(v)}</Tag>,
+    },
+    {
+      title: '',
+      key: 'copy',
+      width: 76,
+      align: 'center' as const,
+      render: (_, row) => {
+        const ticketText = row.taskType === 'jira'
+          ? [row.ticketKey, row.title].filter(Boolean).join(' ')
+          : row.title;
+        return (
+          <Space size={4}>
+            <Button
+              type="text"
+              size="small"
+              icon={<CopyOutlined />}
+              title="Copy ticket"
+              onClick={() => copyText(ticketText)}
+            />
+            <Button
+              type="text"
+              size="small"
+              icon={<ClockCircleOutlined />}
+              title="Copy time"
+              onClick={() => copyText(copyTimeStr(row.minutes))}
+            />
+          </Space>
+        );
+      },
+    },
+  ];
+
   return (
     <>
       <Card
         title="Time Entries"
         extra={
           <Space>
+            <Segmented
+              value={viewMode}
+              onChange={v => setViewMode(v as 'date' | 'ticket')}
+              options={[
+                { value: 'date', icon: <UnorderedListOutlined />, label: 'By Date' },
+                { value: 'ticket', icon: <TagsOutlined />, label: 'By Ticket' },
+              ]}
+            />
             <Select
               value={selectedMonth}
               onChange={setSelectedMonth}
@@ -401,16 +565,64 @@ export function TimeLogTable({ logs, loading, onUpdated, onDeleted }: Props) {
           ))}
         </Row>
 
+        {viewMode === 'ticket' ? (
+          <>
+          <Table<TicketRow>
+            columns={ticketColumns}
+            dataSource={ticketRows}
+            rowKey="key"
+            loading={loading}
+            pagination={false}
+            size="middle"
+            locale={{ emptyText: search ? 'No matching entries' : 'No entries for this month' }}
+            rowClassName={row => loggedIds.has(row.key) ? 'row-logged' : ''}
+            rowSelection={{
+              selectedRowKeys: selectedKeys,
+              onChange: keys => setSelectedKeys(keys as string[]),
+              columnWidth: 40,
+            }}
+          />
+          {selectedKeys.length > 0 && (
+            <div style={{
+              position: 'sticky', bottom: 0, marginTop: 8,
+              background: '#fff', border: '1px solid #E2E8F0',
+              borderRadius: 8, padding: '10px 16px',
+              display: 'flex', alignItems: 'center', gap: 12,
+              boxShadow: '0 -2px 12px rgba(0,0,0,0.06)',
+            }}>
+              <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+                {selectedKeys.length} selected
+              </Typography.Text>
+              <Button
+                type="primary"
+                size="small"
+                icon={<CheckCircleOutlined />}
+                onClick={() => applyLogged(selectedKeys, true)}
+              >
+                Mark as Logged
+              </Button>
+              <Button
+                size="small"
+                onClick={() => applyLogged(selectedKeys, false)}
+              >
+                Mark as Unlogged
+              </Button>
+              <Button size="small" type="text" onClick={() => setSelectedKeys([])}>Clear</Button>
+            </div>
+          )}
+          </>
+        ) : (
         <Table<TableRow>
           columns={columns}
           dataSource={tableRows}
           rowKey="key"
           loading={loading}
-          pagination={{ pageSize: 50, showSizeChanger: false, hideOnSinglePage: true }}
+          pagination={false}
           size="middle"
           locale={{ emptyText: search ? 'No matching entries' : 'No entries for this month' }}
           rowClassName={row => row.weekNum % 2 === 0 ? 'row-week-even' : 'row-week-odd'}
         />
+        )}
       </Card>
 
       {/* ── Edit Drawer ─────────────────────────────────────────────────────── */}

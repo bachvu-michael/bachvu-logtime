@@ -1,19 +1,21 @@
 import { useState, useEffect } from 'react';
 import { ConfigProvider, Layout, Menu, theme, Tooltip } from 'antd';
-import { ClockCircleOutlined, BarChartOutlined, FileTextOutlined, CalendarOutlined, LogoutOutlined } from '@ant-design/icons';
+import { ClockCircleOutlined, BarChartOutlined, FileTextOutlined, CalendarOutlined, LogoutOutlined, LinkOutlined } from '@ant-design/icons';
 import { LogTimePage } from './pages/LogTimePage';
 import { DashboardPage } from './pages/DashboardPage';
 import { CalendarPage } from './pages/CalendarPage';
 import { InvoicePage } from './pages/InvoicePage';
+import { XeroPage } from './pages/XeroPage';
 import { LoginPage } from './pages/LoginPage';
 import { checkAuthRequired, isAuthenticated, logout } from './api/auth';
 
 const { Sider, Content } = Layout;
 
-type Page = 'dashboard' | 'log' | 'calendar' | 'invoices';
+type Page = 'dashboard' | 'log' | 'calendar' | 'invoices' | 'xero';
 
 export default function App() {
-  const [page, setPage] = useState<Page>('dashboard');
+  const initialPage = (new URLSearchParams(window.location.search).get('xero') ? 'xero' : 'dashboard') as Page;
+  const [page, setPage] = useState<Page>(initialPage);
   const [collapsed, setCollapsed] = useState(false);
   const [authed, setAuthed] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
@@ -109,6 +111,7 @@ export default function App() {
               { key: 'log', icon: <ClockCircleOutlined />, label: 'Log Time' },
               { key: 'calendar', icon: <CalendarOutlined />, label: 'Calendar' },
               { key: 'invoices', icon: <FileTextOutlined />, label: 'Invoices' },
+              { key: 'xero', icon: <LinkOutlined />, label: 'Xero' },
               { type: 'divider' },
             ]}
           />
@@ -145,6 +148,7 @@ export default function App() {
           {page === 'dashboard' && <DashboardPage />}
           {page === 'calendar' && <CalendarPage />}
           {page === 'invoices' && <InvoicePage />}
+          {page === 'xero' && <XeroPage />}
         </Content>
       </Layout>
     </ConfigProvider>

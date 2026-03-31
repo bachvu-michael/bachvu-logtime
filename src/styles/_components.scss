@@ -190,6 +190,10 @@
   .ant-table-tbody > tr.row-week-even > td { background: #F4F7FF; }
   .ant-table-tbody > tr.row-week-odd:hover > td,
   .ant-table-tbody > tr.row-week-even:hover > td { background: #E8EEFF !important; }
+
+  // Logged row highlight
+  .ant-table-tbody > tr.row-logged > td { background: #F0FFF4 !important; }
+  .ant-table-tbody > tr.row-logged:hover > td { background: #DCFCE7 !important; }
 }
 
 // Statistic
