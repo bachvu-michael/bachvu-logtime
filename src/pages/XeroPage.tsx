@@ -28,8 +28,20 @@ function RedirectUriRow({ uri }: { uri?: string }) {
           size="small"
           icon={<CopyOutlined />}
           onClick={() => {
-            navigator.clipboard.writeText(value);
-            message.success('Copied!');
+            if (navigator.clipboard) {
+              navigator.clipboard.writeText(value).then(
+                () => message.success('Copied!'),
+                () => message.error('Copy failed'),
+              );
+            } else {
+              const el = document.createElement('textarea');
+              el.value = value;
+              document.body.appendChild(el);
+              el.select();
+              document.execCommand('copy');
+              document.body.removeChild(el);
+              message.success('Copied!');
+            }
           }}
         />
       </Tooltip>

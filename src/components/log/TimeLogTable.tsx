@@ -99,10 +99,20 @@ export function TimeLogTable({ logs, loading, onUpdated, onDeleted }: Props) {
   }
 
   function copyText(text: string) {
-    navigator.clipboard.writeText(text).then(
-      () => message.success('Copied!', 1),
-      () => message.error('Copy failed'),
-    );
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(
+        () => message.success('Copied!', 1),
+        () => message.error('Copy failed'),
+      );
+    } else {
+      const el = document.createElement('textarea');
+      el.value = text;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      message.success('Copied!', 1);
+    }
   }
 
   function copyTimeStr(minutes: number): string {
