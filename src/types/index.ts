@@ -91,3 +91,44 @@ export interface Invoice {
 }
 
 export type InvoiceInput = Omit<Invoice, 'id' | 'createdAt'>;
+
+// ── Bills ─────────────────────────────────────────────────────────────────────
+export type BillType = 'electric' | 'water';
+
+export type BillLocation = 'home' | 'room' | 'other';
+
+export const BILL_TYPE_LABELS: Record<BillType, string> = {
+  electric: 'Electric',
+  water:    'Water',
+};
+
+export const BILL_TYPE_COLORS: Record<BillType, string> = {
+  electric: 'gold',
+  water:    'blue',
+};
+
+export const BILL_TYPE_HEX: Record<BillType, string> = {
+  electric: '#F59E0B',
+  water:    '#3B82F6',
+};
+
+export const BILL_LOCATION_LABELS: Record<BillLocation, string> = {
+  home:   'Home',
+  room:   'Room',
+  other:  'Other',
+};
+
+export const BILL_LOCATIONS: BillLocation[] = ['home', 'room', 'other'];
+
+export interface Bill {
+  id:        string;
+  billType:  BillType;
+  location:  BillLocation;
+  amount:    number;       // in VND
+  billMonth: string;       // YYYY-MM — the month this bill covers
+  paidDate:  string;       // YYYY-MM-DD — when it was actually paid
+  note?:     string;
+  createdAt: number;
+}
+
+export type BillInput = Omit<Bill, 'id' | 'createdAt'>;

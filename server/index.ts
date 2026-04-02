@@ -8,6 +8,7 @@ import logsRouter from './routes/logs.js';
 import tasksRouter from './routes/tasks.js';
 import invoicesRouter from './routes/invoices.js';
 import pdfRouter from './routes/pdf.js';
+import billsRouter from './routes/bills.js';
 import { authRouter, requireAuth } from './auth.js';
 
 // Load .env if present (no dotenv dependency needed)
@@ -34,6 +35,7 @@ app.use('/api/logs',     requireAuth, logsRouter);
 app.use('/api/tasks',    requireAuth, tasksRouter);
 app.use('/api/invoices', requireAuth, invoicesRouter);
 app.use('/api/pdf',      requireAuth, pdfRouter);
+app.use('/api/bills',    requireAuth, billsRouter);
 
 // Serve built frontend in production
 if (process.env.NODE_ENV === 'production') {

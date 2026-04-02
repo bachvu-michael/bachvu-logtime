@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react';
 import { ConfigProvider, Layout, Menu, theme, Tooltip } from 'antd';
-import { ClockCircleOutlined, BarChartOutlined, FileTextOutlined, CalendarOutlined, LogoutOutlined } from '@ant-design/icons';
+import { ClockCircleOutlined, BarChartOutlined, FileTextOutlined, CalendarOutlined, LogoutOutlined, BulbOutlined } from '@ant-design/icons';
 import { LogTimePage } from './pages/LogTimePage';
 import { DashboardPage } from './pages/DashboardPage';
 import { CalendarPage } from './pages/CalendarPage';
 import { InvoicePage } from './pages/InvoicePage';
+import { BillsPage } from './pages/BillsPage';
 import { LoginPage } from './pages/LoginPage';
 import { checkAuthRequired, isAuthenticated, logout } from './api/auth';
 
 const { Sider, Content } = Layout;
 
-type Page = 'dashboard' | 'log' | 'calendar' | 'invoices';
+type Page = 'dashboard' | 'log' | 'calendar' | 'invoices' | 'bills';
 
 export default function App() {
   const initialPage: Page = 'dashboard';
@@ -110,6 +111,7 @@ export default function App() {
               { key: 'log', icon: <ClockCircleOutlined />, label: 'Log Time' },
               { key: 'calendar', icon: <CalendarOutlined />, label: 'Calendar' },
               { key: 'invoices', icon: <FileTextOutlined />, label: 'Invoices' },
+              { key: 'bills',    icon: <BulbOutlined />,     label: 'Bills' },
               { type: 'divider' },
             ]}
           />
@@ -146,6 +148,7 @@ export default function App() {
           {page === 'dashboard' && <DashboardPage />}
           {page === 'calendar' && <CalendarPage />}
           {page === 'invoices' && <InvoicePage />}
+          {page === 'bills'    && <BillsPage />}
         </Content>
       </Layout>
     </ConfigProvider>

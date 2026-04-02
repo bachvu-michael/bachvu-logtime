@@ -63,3 +63,18 @@ model InvoiceItem {
 
   @@map("invoice_items")
 }
+
+model Bill {
+  id        String   @id @db.VarChar(36)
+  billType  String   @map("bill_type") @db.VarChar(20)
+  location  String   @db.VarChar(20)
+  amount    Decimal  @db.Decimal(15, 2)
+  billMonth String   @map("bill_month") @db.VarChar(7)  // YYYY-MM
+  paidDate  DateTime @map("paid_date") @db.Date
+  note      String?  @db.Text
+  createdAt BigInt   @map("created_at")
+
+  @@index([billMonth])
+  @@index([location])
+  @@map("bills")
+}
