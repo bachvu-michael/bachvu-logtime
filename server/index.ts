@@ -3,11 +3,11 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import { prisma } from './prisma.js';
 import logsRouter from './routes/logs.js';
 import tasksRouter from './routes/tasks.js';
 import invoicesRouter from './routes/invoices.js';
 import pdfRouter from './routes/pdf.js';
-import xeroRouter, { xeroCallbackRouter } from './routes/xero.js';
 import { authRouter, requireAuth } from './auth.js';
 
 // Load .env if present (no dotenv dependency needed)
@@ -15,7 +15,7 @@ const envFile = path.join(process.cwd(), '.env');
 if (fs.existsSync(envFile)) {
   for (const line of fs.readFileSync(envFile, 'utf-8').split('\n')) {
     const m = line.match(/^([^=#\s]+)\s*=\s*(.*)$/);
-    if (m) process.env[m[1]] = m[2].trim();
+    if (m) process.env[m[1]] = m[2].trim().replace(/^["']|["']$/g, '');
   }
 }
 
@@ -30,12 +30,10 @@ app.use(express.json());
 app.use('/api/auth', authRouter);
 
 // Protected API routes
-app.use('/api/logs', requireAuth, logsRouter);
-app.use('/api/tasks', requireAuth, tasksRouter);
+app.use('/api/logs',     requireAuth, logsRouter);
+app.use('/api/tasks',    requireAuth, tasksRouter);
 app.use('/api/invoices', requireAuth, invoicesRouter);
-app.use('/api/pdf',     requireAuth, pdfRouter);
-app.use('/api/xero', xeroCallbackRouter); // public — OAuth callback redirect from Xero
-app.use('/api/xero', requireAuth, xeroRouter);
+app.use('/api/pdf',      requireAuth, pdfRouter);
 
 // Serve built frontend in production
 if (process.env.NODE_ENV === 'production') {
@@ -48,7 +46,16 @@ if (process.env.NODE_ENV === 'production') {
 
 // In production, bind to localhost only — Nginx proxies /api externally
 const HOST = process.env.NODE_ENV === 'production' ? '127.0.0.1' : '0.0.0.0';
-app.listen(PORT, HOST, () => {
-  const authStatus = process.env.APP_PASSWORD ? 'password protected' : 'no auth';
-  console.log(`LogTime API running on http://${HOST}:${PORT} (${authStatus})`);
-});
+
+prisma.$connect()
+  .then(() => {
+    console.log('Connected to database');
+    app.listen(PORT, HOST, () => {
+      const authStatus = process.env.APP_PASSWORD ? 'password protected' : 'no auth';
+      console.log(`LogTime API running on http://${HOST}:${PORT} (${authStatus})`);
+    });
+  })
+  .catch((err: unknown) => {
+    console.error('Failed to connect to database:', err);
+    process.exit(1);
+  });

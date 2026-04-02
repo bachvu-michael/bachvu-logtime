@@ -1,20 +1,19 @@
 import { useState, useEffect } from 'react';
 import { ConfigProvider, Layout, Menu, theme, Tooltip } from 'antd';
-import { ClockCircleOutlined, BarChartOutlined, FileTextOutlined, CalendarOutlined, LogoutOutlined, LinkOutlined } from '@ant-design/icons';
+import { ClockCircleOutlined, BarChartOutlined, FileTextOutlined, CalendarOutlined, LogoutOutlined } from '@ant-design/icons';
 import { LogTimePage } from './pages/LogTimePage';
 import { DashboardPage } from './pages/DashboardPage';
 import { CalendarPage } from './pages/CalendarPage';
 import { InvoicePage } from './pages/InvoicePage';
-import { XeroPage } from './pages/XeroPage';
 import { LoginPage } from './pages/LoginPage';
 import { checkAuthRequired, isAuthenticated, logout } from './api/auth';
 
 const { Sider, Content } = Layout;
 
-type Page = 'dashboard' | 'log' | 'calendar' | 'invoices' | 'xero';
+type Page = 'dashboard' | 'log' | 'calendar' | 'invoices';
 
 export default function App() {
-  const initialPage = (new URLSearchParams(window.location.search).get('xero') ? 'xero' : 'dashboard') as Page;
+  const initialPage: Page = 'dashboard';
   const [page, setPage] = useState<Page>(initialPage);
   const [collapsed, setCollapsed] = useState(false);
   const [authed, setAuthed] = useState(false);
@@ -111,7 +110,6 @@ export default function App() {
               { key: 'log', icon: <ClockCircleOutlined />, label: 'Log Time' },
               { key: 'calendar', icon: <CalendarOutlined />, label: 'Calendar' },
               { key: 'invoices', icon: <FileTextOutlined />, label: 'Invoices' },
-              { key: 'xero', icon: <LinkOutlined />, label: 'Xero' },
               { type: 'divider' },
             ]}
           />
@@ -119,7 +117,7 @@ export default function App() {
           {/* Footer hint */}
           {!collapsed && (
             <div className="sidebar__footer">
-              data saved to /data/*.json
+              data saved to MySQL
             </div>
           )}
 
@@ -148,7 +146,6 @@ export default function App() {
           {page === 'dashboard' && <DashboardPage />}
           {page === 'calendar' && <CalendarPage />}
           {page === 'invoices' && <InvoicePage />}
-          {page === 'xero' && <XeroPage />}
         </Content>
       </Layout>
     </ConfigProvider>

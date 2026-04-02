@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider          = "mysql"
+  url               = env("DATABASE_URL")
+}
+
+model LogEntry {
+  id            String   @id @db.VarChar(36)
+  taskType      String   @map("task_type") @db.VarChar(20)
+  ticketKey     String   @default("") @map("ticket_key") @db.VarChar(50)
+  title         String   @default("") @db.VarChar(500)
+  hours         Int      @default(0)
+  minutes       Int      @default(0)
+  timeSpent     Decimal  @default(0) @map("time_spent") @db.Decimal(8, 4)
+  date          DateTime @db.Date
+  teamworkType  String?  @map("teamwork_type") @db.VarChar(20)
+  takeoffPeriod String?  @map("takeoff_period") @db.VarChar(20)
+  createdAt     BigInt   @map("created_at")
+
+  @@map("log_entries")
+}
+
+model JiraTask {
+  ticketKey String @id @map("ticket_key") @db.VarChar(50)
+  title     String @default("") @db.VarChar(500)
+
+  @@map("jira_tasks")
+}
+
+model TeamworkTask {
+  id           Int    @id @default(autoincrement())
+  teamworkType String @map("teamwork_type") @db.VarChar(20)
+  name         String @db.VarChar(500)
+
+  @@unique([teamworkType, name], name: "uq_type_name")
+  @@map("teamwork_tasks")
+}
+
+model Invoice {
+  id          String        @id @db.VarChar(36)
+  invoiceType String        @default("invoice") @map("invoice_type") @db.VarChar(20)
+  domain      String        @default("") @db.VarChar(255)
+  total       Decimal       @default(0) @db.Decimal(15, 2)
+  datetime    DateTime      @db.Date
+  description String?       @db.Text
+  status      String        @default("pending") @db.VarChar(20)
+  createdAt   BigInt        @map("created_at")
+  items       InvoiceItem[]
+
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id          Int     @id @default(autoincrement())
+  invoiceId   String  @map("invoice_id") @db.VarChar(36)
+  description String  @db.Text
+  price       Decimal @default(0) @db.Decimal(15, 2)
+  quantity    Decimal @default(1) @db.Decimal(10, 4)
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@map("invoice_items")
+}

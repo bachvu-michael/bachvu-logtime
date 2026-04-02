@@ -1,57 +1,51 @@
 import { Router, Request, Response } from 'express';
-import fs from 'fs';
-import path from 'path';
+import { prisma } from '../prisma.js';
 
 const router = Router();
-const DATA_DIR   = path.join(process.cwd(), 'data');
-const TASKS_FILE = path.join(DATA_DIR, 'tasks.json');
 
 export interface TasksStore {
-  jira: Record<string, string>;                    // ticketKey -> title
-  teamwork: Record<string, string[]>;              // teamworkType -> unique names
+  jira: Record<string, string>;       // ticketKey -> title
+  teamwork: Record<string, string[]>; // teamworkType -> unique names
 }
 
-const EMPTY_STORE = (): TasksStore => ({ jira: {}, teamwork: {} });
-
-export function readTasks(): TasksStore {
-  if (!fs.existsSync(TASKS_FILE)) return EMPTY_STORE();
-  try {
-    const raw = JSON.parse(fs.readFileSync(TASKS_FILE, 'utf-8'));
-    // Backward-compat: old format had teamwork as a flat string[]
-    if (Array.isArray(raw.teamwork)) {
-      return { jira: raw.jira ?? {}, teamwork: {} };
-    }
-    return raw as TasksStore;
-  } catch {
-    return EMPTY_STORE();
-  }
-}
-
-function writeTasks(store: TasksStore) {
-  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-  fs.writeFileSync(TASKS_FILE, JSON.stringify(store, null, 2), 'utf-8');
-}
-
-/** Call after creating or updating a log entry. */
-export function upsertTask(taskType: string, ticketKey: string, title: string, teamworkType?: string) {
-  const store = readTasks();
-
+export async function upsertTask(
+  taskType: string,
+  ticketKey: string,
+  title: string,
+  teamworkType?: string,
+) {
   if (taskType === 'jira' && ticketKey && title) {
-    store.jira[ticketKey] = title;
+    await prisma.jiraTask.upsert({
+      where:  { ticketKey },
+      update: { title },
+      create: { ticketKey, title },
+    });
   } else if (taskType === 'teamwork' && teamworkType && title) {
-    if (!store.teamwork[teamworkType]) store.teamwork[teamworkType] = [];
-    if (!store.teamwork[teamworkType].includes(title)) {
-      store.teamwork[teamworkType].push(title);
-      store.teamwork[teamworkType].sort();
-    }
+    await prisma.teamworkTask.upsert({
+      where:  { uq_type_name: { teamworkType, name: title } },
+      update: {},
+      create: { teamworkType, name: title },
+    });
   }
-
-  writeTasks(store);
 }
 
 // GET /api/tasks
-router.get('/', (_req: Request, res: Response) => {
-  res.json(readTasks());
+router.get('/', async (_req: Request, res: Response) => {
+  const [jiraRows, teamworkRows] = await Promise.all([
+    prisma.jiraTask.findMany(),
+    prisma.teamworkTask.findMany({ orderBy: { name: 'asc' } }),
+  ]);
+
+  const jira: Record<string, string> = {};
+  for (const r of jiraRows) jira[r.ticketKey] = r.title;
+
+  const teamwork: Record<string, string[]> = {};
+  for (const r of teamworkRows) {
+    if (!teamwork[r.teamworkType]) teamwork[r.teamworkType] = [];
+    teamwork[r.teamworkType].push(r.name);
+  }
+
+  res.json({ jira, teamwork });
 });
 
 export default router;
