@@ -178,6 +178,31 @@ async function importBills() {
   }
 }
 
+// ─── 5. Cycle entries ─────────────────────────────────────────────────────────
+async function importCycles() {
+  const entries = readJson<Array<{
+    id: string; date: string; bleeding: string; mucus: string;
+    sensation: string; isPeakDay: boolean; note?: string; createdAt: number;
+  }>>('cycles.json');
+
+  if (!entries?.length) { console.log('  cycles.json not found or empty — skipping'); return; }
+
+  const result = await prisma.cycleEntry.createMany({
+    data: entries.map(e => ({
+      id:        e.id,
+      date:      e.date,
+      bleeding:  e.bleeding  ?? 'none',
+      mucus:     e.mucus     ?? 'none',
+      sensation: e.sensation ?? 'dry',
+      isPeakDay: e.isPeakDay ?? false,
+      note:      e.note      ?? null,
+      createdAt: e.createdAt,
+    })),
+    skipDuplicates: true,
+  });
+  console.log(`  Cycle entries: ${result.count} imported`);
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 async function main() {
   console.log('Starting data import...\n');
@@ -193,6 +218,9 @@ async function main() {
 
   console.log('\nImporting bills...');
   await importBills();
+
+  console.log('\nImporting cycle entries...');
+  await importCycles();
 
   console.log('\nDone.');
 }

@@ -2,18 +2,19 @@ import { useState, useEffect } from 'react';
 import { ConfigProvider, Layout, Menu, theme, Tooltip, Drawer, Button } from 'antd';
 import {
   ClockCircleOutlined, BarChartOutlined, FileTextOutlined,
-  CalendarOutlined, LogoutOutlined, BulbOutlined, MenuOutlined,
+  CalendarOutlined, LogoutOutlined, BulbOutlined, MenuOutlined, HeartOutlined,
 } from '@ant-design/icons';
 import { LogTimePage }   from './pages/LogTimePage';
 import { DashboardPage } from './pages/DashboardPage';
 import { CalendarPage }  from './pages/CalendarPage';
 import { InvoicePage }   from './pages/InvoicePage';
 import { BillsPage }     from './pages/BillsPage';
+import { CyclePage }     from './pages/CyclePage';
 import { LoginPage }     from './pages/LoginPage';
 import { checkAuthRequired, isAuthenticated, logout } from './api/auth';
 
 const { Sider, Content } = Layout;
-type Page = 'dashboard' | 'log' | 'calendar' | 'invoices' | 'bills';
+type Page = 'dashboard' | 'log' | 'calendar' | 'invoices' | 'bills' | 'cycle';
 
 const NAV_ITEMS = [
   { key: 'dashboard', icon: <BarChartOutlined />,    label: 'Dashboard' },
@@ -21,6 +22,7 @@ const NAV_ITEMS = [
   { key: 'calendar',  icon: <CalendarOutlined />,    label: 'Calendar' },
   { key: 'invoices',  icon: <FileTextOutlined />,    label: 'Invoices' },
   { key: 'bills',     icon: <BulbOutlined />,        label: 'Bills' },
+  { key: 'cycle',     icon: <HeartOutlined />,       label: 'Chu kỳ' },
 ] as const;
 
 function useIsMobile() {
@@ -61,7 +63,7 @@ export default function App() {
 
   const PAGE_LABELS: Record<Page, string> = {
     dashboard: 'Dashboard', log: 'Log Time', calendar: 'Calendar',
-    invoices: 'Invoices', bills: 'Bills',
+    invoices: 'Invoices', bills: 'Bills', cycle: 'Chu kỳ',
   };
 
   if (!authChecked) return null;
@@ -177,6 +179,7 @@ export default function App() {
             {page === 'calendar'  && <CalendarPage />}
             {page === 'invoices'  && <InvoicePage />}
             {page === 'bills'     && <BillsPage />}
+            {page === 'cycle'     && <CyclePage />}
           </div>
 
           {/* Bottom tab bar */}
@@ -231,6 +234,7 @@ export default function App() {
             {page === 'calendar'  && <CalendarPage />}
             {page === 'invoices'  && <InvoicePage />}
             {page === 'bills'     && <BillsPage />}
+            {page === 'cycle'     && <CyclePage />}
           </Content>
         </Layout>
       )}

@@ -140,6 +140,67 @@ export interface Bill {
 
 export type BillInput = Omit<Bill, 'id' | 'createdAt'>;
 
+// ── Cycle (Billings Method) ───────────────────────────────────────────────────
+export type CycleBleeding  = 'none' | 'spotting' | 'light' | 'medium' | 'heavy';
+export type CycleMucus     = 'none' | 'sticky' | 'creamy' | 'watery' | 'egg_white';
+export type CycleSensation = 'dry' | 'moist' | 'wet' | 'slippery';
+
+export const CYCLE_BLEEDING_LABELS: Record<CycleBleeding, string> = {
+  none:     'Không có',
+  spotting: 'Lấm tấm',
+  light:    'Nhẹ',
+  medium:   'Vừa',
+  heavy:    'Nhiều',
+};
+
+export const CYCLE_MUCUS_LABELS: Record<CycleMucus, string> = {
+  none:      'Không có',
+  sticky:    'Đặc / Dính',
+  creamy:    'Kem / Đục',
+  watery:    'Lỏng / Trong',
+  egg_white: 'Giống lòng trắng trứng',
+};
+
+export const CYCLE_SENSATION_LABELS: Record<CycleSensation, string> = {
+  dry:      'Khô',
+  moist:    'Ẩm',
+  wet:      'Ướt',
+  slippery: 'Trơn / Nhớt',
+};
+
+export const CYCLE_BLEEDING_COLORS: Record<CycleBleeding, string> = {
+  none:     'transparent',
+  spotting: '#FECACA',
+  light:    '#FCA5A5',
+  medium:   '#F87171',
+  heavy:    '#DC2626',
+};
+
+export const CYCLE_MUCUS_COLORS: Record<CycleMucus, string> = {
+  none:      'transparent',
+  sticky:    '#D1FAE5',
+  creamy:    '#A7F3D0',
+  watery:    '#67E8F9',
+  egg_white: '#2DD4BF',
+};
+
+export interface CycleEntry {
+  id:        string;
+  date:      string;        // YYYY-MM-DD
+  bleeding:  CycleBleeding;
+  mucus:     CycleMucus;
+  sensation: CycleSensation;
+  isPeakDay: boolean;
+  note?:     string;
+  createdAt: number;
+}
+
+export type CycleEntryInput = Omit<CycleEntry, 'id' | 'createdAt'>;
+
+export const CYCLE_BLEEDING_OPTIONS: CycleBleeding[] = ['none', 'spotting', 'light', 'medium', 'heavy'];
+export const CYCLE_MUCUS_OPTIONS:    CycleMucus[]    = ['none', 'sticky', 'creamy', 'watery', 'egg_white'];
+export const CYCLE_SENSATION_OPTIONS: CycleSensation[] = ['dry', 'moist', 'wet', 'slippery'];
+
 export const BILL_NAME_COLORS = [
   '#4361EE', '#F59E0B', '#10B981', '#EF4444', '#8B5CF6',
   '#EC4899', '#06B6D4', '#F97316', '#14B8A6', '#84CC16',

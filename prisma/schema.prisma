@@ -88,3 +88,17 @@ model BillName {
 
   @@map("bill_names")
 }
+
+model CycleEntry {
+  id        String  @id @db.VarChar(36)
+  date      String  @unique @db.VarChar(10)  // YYYY-MM-DD
+  bleeding  String  @default("none") @db.VarChar(20)  // none | spotting | light | medium | heavy
+  mucus     String  @default("none") @db.VarChar(20)  // none | sticky | creamy | watery | egg_white
+  sensation String  @default("dry")  @db.VarChar(20)  // dry | moist | wet | slippery
+  isPeakDay Boolean @default(false)  @map("is_peak_day")
+  note      String? @db.Text
+  createdAt BigInt  @map("created_at")
+
+  @@index([date])
+  @@map("cycle_entries")
+}
