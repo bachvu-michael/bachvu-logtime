@@ -142,6 +142,42 @@ async function importInvoices() {
   console.log(`  Invoices: ${imported} imported`);
 }
 
+// ─── 4. Bills ─────────────────────────────────────────────────────────────────
+async function importBills() {
+  const bills = readJson<Array<{
+    id: string; billType: string; location: string; name?: string;
+    amount: number; billMonth: string; paidDate: string; note?: string; createdAt: number;
+  }>>('bills.json');
+
+  if (!bills?.length) { console.log('  bills.json not found or empty — skipping'); return; }
+
+  const result = await prisma.bill.createMany({
+    data: bills.map(b => ({
+      id:        b.id,
+      billType:  b.billType,
+      location:  b.location,
+      name:      b.name ?? null,
+      amount:    b.amount,
+      billMonth: b.billMonth,
+      paidDate:  toDate(b.paidDate),
+      note:      b.note ?? null,
+      createdAt: b.createdAt,
+    })),
+    skipDuplicates: true,
+  });
+  console.log(`  Bills: ${result.count} imported`);
+
+  // Also import bill names if present
+  const billNames = readJson<Array<{ id: string; name: string; createdAt: number }>>('bill-names.json');
+  if (billNames?.length) {
+    const namesResult = await prisma.billName.createMany({
+      data: billNames.map(n => ({ id: n.id, name: n.name, createdAt: n.createdAt })),
+      skipDuplicates: true,
+    });
+    console.log(`  Bill names: ${namesResult.count} imported`);
+  }
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 async function main() {
   console.log('Starting data import...\n');
@@ -154,6 +190,9 @@ async function main() {
 
   console.log('\nImporting invoices...');
   await importInvoices();
+
+  console.log('\nImporting bills...');
+  await importBills();
 
   console.log('\nDone.');
 }

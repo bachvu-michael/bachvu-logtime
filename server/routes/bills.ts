@@ -11,6 +11,7 @@ function toBill(r: NonNullable<PrismaBill>): Bill {
     id:        r.id,
     billType:  r.billType  as Bill['billType'],
     location:  r.location  as Bill['location'],
+    name:      r.name ?? undefined,
     amount:    Number(r.amount),
     billMonth: r.billMonth,
     paidDate:  r.paidDate instanceof Date
@@ -21,13 +22,28 @@ function toBill(r: NonNullable<PrismaBill>): Bill {
   };
 }
 
-// GET /api/bills?location=home&year=2026
+// GET /api/bills/export
+router.get('/export', async (req: Request, res: Response) => {
+  const { location, year, name } = req.query as Record<string, string | undefined>;
+  const where: Record<string, unknown> = {};
+  if (location) where.location = location;
+  if (year)     where.billMonth = { startsWith: year + '-' };
+  if (name)     where.name = name;
+  const rows = await prisma.bill.findMany({ where, orderBy: [{ billMonth: 'desc' }] });
+  const bills = rows.map(toBill);
+  res.setHeader('Content-Disposition', 'attachment; filename="bills.json"');
+  res.setHeader('Content-Type', 'application/json');
+  res.json(bills);
+});
+
+// GET /api/bills?location=home&year=2026&name=điện+Bạch
 router.get('/', async (req: Request, res: Response) => {
-  const { location, year } = req.query as Record<string, string | undefined>;
+  const { location, year, name } = req.query as Record<string, string | undefined>;
 
   const where: Record<string, unknown> = {};
   if (location) where.location = location;
   if (year)     where.billMonth = { startsWith: year + '-' };
+  if (name)     where.name = name;
 
   const rows = await prisma.bill.findMany({
     where,
@@ -44,6 +60,7 @@ router.post('/', async (req: Request, res: Response) => {
       id:        crypto.randomUUID(),
       billType:  body.billType,
       location:  body.location,
+      name:      body.name ?? null,
       amount:    body.amount,
       billMonth: body.billMonth,
       paidDate:  new Date(body.paidDate + 'T00:00:00.000Z'),
@@ -67,6 +84,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     data: {
       billType:  body.billType  ?? existing.billType,
       location:  body.location  ?? existing.location,
+      name:      body.name !== undefined ? (body.name || null) : existing.name,
       amount:    body.amount    ?? existing.amount,
       billMonth: body.billMonth ?? existing.billMonth,
       paidDate:  body.paidDate

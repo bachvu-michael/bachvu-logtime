@@ -21,6 +21,8 @@ interface Props {
 }
 
 export function BillTable({ bills, loading, onEdit, onDelete }: Props) {
+  const maxAmount = Math.max(...bills.map(b => b.amount), 1);
+
   const columns: ColumnsType<Bill> = [
     {
       title:     'Bill Month',
@@ -44,13 +46,20 @@ export function BillTable({ bills, loading, onEdit, onDelete }: Props) {
       onFilter: (v, r) => r.billType === v,
     },
     {
+      title:  'Name',
+      key:    'name',
+      width:  140,
+      render: (_, r) => r.name
+        ? <Text style={{ fontWeight: 500 }}>{r.name}</Text>
+        : <Text type="secondary">—</Text>,
+    },
+    {
       title:  'Location',
       key:    'location',
       width:  120,
       render: (_, r) => BILL_LOCATION_LABELS[r.location],
       filters: [
         { text: 'Home',        value: 'home' },
-        { text: 'Office',      value: 'office' },
         { text: 'Rental Room', value: 'room' },
         { text: 'Other',       value: 'other' },
       ],
@@ -59,9 +68,31 @@ export function BillTable({ bills, loading, onEdit, onDelete }: Props) {
     {
       title:  'Amount',
       key:    'amount',
-      width:  140,
-      align:  'right',
-      render: (_, r) => <Text strong>{fmtVnd(r.amount)}</Text>,
+      width:  180,
+      align:  'right' as const,
+      render: (_, r) => {
+        const pct = Math.round((r.amount / maxAmount) * 100);
+        return (
+          <div>
+            <Text strong style={{ display: 'block', textAlign: 'right', marginBottom: 4 }}>
+              {fmtVnd(r.amount)}
+            </Text>
+            <div style={{
+              height: 4, borderRadius: 2, background: '#F1F5F9', overflow: 'hidden',
+            }}>
+              <div style={{
+                height: '100%',
+                width: `${pct}%`,
+                borderRadius: 2,
+                background: r.billType === 'electric'
+                  ? 'linear-gradient(90deg, #F97316, #EF4444)'
+                  : 'linear-gradient(90deg, #0EA5E9, #3B82F6)',
+                transition: 'width 0.3s ease',
+              }} />
+            </div>
+          </div>
+        );
+      },
       sorter: (a, b) => a.amount - b.amount,
     },
     {
@@ -71,11 +102,13 @@ export function BillTable({ bills, loading, onEdit, onDelete }: Props) {
       width:     120,
     },
     {
-      title:  'Note',
+      title:     'Note',
       dataIndex: 'note',
-      key:    'note',
-      ellipsis: true,
-      render: (v: string | undefined) => v || '—',
+      key:       'note',
+      ellipsis:  true,
+      render:    (v: string | undefined) => v
+        ? <Text type="secondary" style={{ fontSize: 12 }}>{v}</Text>
+        : <Text type="secondary">—</Text>,
     },
     {
       title:  'Actions',
@@ -83,14 +116,19 @@ export function BillTable({ bills, loading, onEdit, onDelete }: Props) {
       width:  90,
       render: (_, r) => (
         <Space>
-          <Button size="small" icon={<EditOutlined />} onClick={() => onEdit(r)} />
+          <Button
+            size="small"
+            icon={<EditOutlined />}
+            onClick={() => onEdit(r)}
+            style={{ cursor: 'pointer' }}
+          />
           <Popconfirm
             title="Delete this bill?"
             onConfirm={() => onDelete(r.id)}
             okText="Delete"
             okButtonProps={{ danger: true }}
           >
-            <Button size="small" danger icon={<DeleteOutlined />} />
+            <Button size="small" danger icon={<DeleteOutlined />} style={{ cursor: 'pointer' }} />
           </Popconfirm>
         </Space>
       ),
@@ -103,7 +141,7 @@ export function BillTable({ bills, loading, onEdit, onDelete }: Props) {
       columns={columns}
       dataSource={bills}
       loading={loading}
-      pagination={{ pageSize: 20, showSizeChanger: false }}
+      pagination={{ pageSize: 20, showSizeChanger: false, showTotal: (t) => `${t} records` }}
       size="small"
     />
   );

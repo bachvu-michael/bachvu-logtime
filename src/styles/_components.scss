@@ -520,3 +520,201 @@
     color: $text-secondary;
   }
 }
+
+// ─── Mobile Layout ────────────────────────────────────────────────────────────
+.mobile-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh; // dynamic viewport height for mobile browsers
+  background: $bg-page;
+}
+
+.mobile-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  height: 56px;
+  background: $sidebar-bg;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.07);
+
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  &__title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #FFFFFF;
+    letter-spacing: -0.2px;
+  }
+
+  &__menu-btn {
+    color: $sidebar-text !important;
+    width: 44px !important;
+    height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 18px !important;
+
+    &:hover { color: #E2E8F0 !important; }
+  }
+}
+
+.mobile-content {
+  flex: 1;
+  margin-top: 56px;     // below fixed header
+  margin-bottom: 64px;  // above fixed bottom nav
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  // Reduce page padding on mobile
+  > div {
+    padding: 16px !important;
+    max-width: 100% !important;
+  }
+}
+
+// ─── Bottom Navigation Bar ────────────────────────────────────────────────────
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  height: 64px;
+  background: $sidebar-bg;
+  display: flex;
+  align-items: stretch;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  // Safe area for notch devices
+  padding-bottom: env(safe-area-inset-bottom, 0);
+
+  &__item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: $sidebar-text;
+    transition: $transition-fast;
+    padding: 8px 4px;
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+
+    &:hover, &:focus-visible {
+      color: #E2E8F0;
+      background: $sidebar-hover;
+      outline: none;
+    }
+
+    &--active {
+      color: #FFFFFF;
+
+      .bottom-nav__icon {
+        background: rgba(67, 97, 238, 0.85);
+        border-radius: $radius-sm;
+      }
+    }
+  }
+
+  &__icon {
+    width: 32px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: $transition-fast;
+  }
+
+  &__label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+    line-height: 1;
+  }
+}
+
+// ─── Mobile Responsive Overrides ─────────────────────────────────────────────
+@media (max-width: 767px) {
+  // Tables: horizontal scroll on mobile
+  .ant-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  // Inputs: prevent zoom on focus (iOS) — min 16px
+  .ant-input,
+  .ant-input-number-input,
+  .ant-picker-input > input,
+  .ant-select-selection-search-input {
+    font-size: 16px !important;
+  }
+
+  // Cards: tighter padding on mobile
+  .ant-card .ant-card-body {
+    padding: 14px !important;
+  }
+
+  .ant-card .ant-card-head {
+    padding: 0 14px !important;
+  }
+
+  // Stat cards: reduce value font size
+  .stat-card__value { font-size: 22px !important; }
+  .ant-statistic-content { font-size: 20px !important; }
+
+  // Modals: full screen on mobile
+  .ant-modal {
+    max-width: 100vw !important;
+    margin: 0 !important;
+    top: 0 !important;
+    padding-bottom: 0 !important;
+
+    .ant-modal-content {
+      border-radius: 0 !important;
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+  }
+
+  // Row gutter fix
+  .ant-row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  // Buttons: ensure touch target
+  .ant-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .ant-btn-sm {
+    min-height: 36px;
+  }
+
+  // Space: reduce gaps
+  .ant-space-item + .ant-space-item {
+    margin-left: 6px !important;
+  }
+
+  // Select/filter bar wrapping
+  .ant-space {
+    flex-wrap: wrap !important;
+  }
+}

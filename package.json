@@ -4,9 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -n server,client -c green,cyan \"npm run devs\" \"wait-on tcp:3003 && npm run devc\"",
-    "devc": "vite",
-    "devs": "tsx watch server/index.ts",
+    "dev": "concurrently -n server,client -c green,cyan \"npm run dev:server\" \"wait-on tcp:3003 && npm run dev:client\"",
+    "dev:client": "vite",
+    "dev:server": "tsx watch server/index.ts",
     "build": "vite build",
     "preview": "vite preview",
     "start:win": "cross-env NODE_ENV=production tsx server/index.ts",

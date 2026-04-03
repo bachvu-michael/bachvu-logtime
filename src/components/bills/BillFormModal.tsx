@@ -1,20 +1,25 @@
-import { useEffect } from 'react';
-import { Modal, Form, Select, InputNumber, DatePicker, Input } from 'antd';
+import { useEffect, useState } from 'react';
+import { Modal, Form, Select, InputNumber, DatePicker, Input, Button, Space } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import {
-  Bill, BillInput,
+  Bill, BillInput, BillName,
   BILL_TYPE_LABELS, BILL_LOCATION_LABELS, BILL_LOCATIONS,
 } from '../../types';
 
 interface Props {
-  open:     boolean;
-  editing:  Bill | null;
-  onClose:  () => void;
-  onSave:   (input: BillInput) => Promise<void>;
+  open:          boolean;
+  editing:       Bill | null;
+  billNames:     BillName[];
+  onClose:       () => void;
+  onSave:        (input: BillInput) => Promise<void>;
+  onCreateName:  (name: string) => Promise<BillName>;
 }
 
-export function BillFormModal({ open, editing, onClose, onSave }: Props) {
+export function BillFormModal({ open, editing, billNames, onClose, onSave, onCreateName }: Props) {
   const [form] = Form.useForm<BillInput & { paidDateDayjs: dayjs.Dayjs; billMonthDayjs: dayjs.Dayjs }>();
+  const [newNameInput, setNewNameInput] = useState('');
+  const [addingName, setAddingName]     = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -22,6 +27,7 @@ export function BillFormModal({ open, editing, onClose, onSave }: Props) {
       form.setFieldsValue({
         billType:       editing.billType,
         location:       editing.location,
+        name:           editing.name,
         amount:         editing.amount,
         billMonthDayjs: dayjs(editing.billMonth + '-01'),
         paidDateDayjs:  dayjs(editing.paidDate),
@@ -36,13 +42,27 @@ export function BillFormModal({ open, editing, onClose, onSave }: Props) {
         billMonthDayjs: dayjs(),
       });
     }
+    setNewNameInput('');
   }, [open, editing, form]);
+
+  async function handleAddName() {
+    if (!newNameInput.trim()) return;
+    setAddingName(true);
+    try {
+      const created = await onCreateName(newNameInput.trim());
+      form.setFieldValue('name', created.name);
+      setNewNameInput('');
+    } finally {
+      setAddingName(false);
+    }
+  }
 
   async function handleOk() {
     const values = await form.validateFields();
     await onSave({
       billType:  values.billType,
       location:  values.location,
+      name:      values.name || undefined,
       amount:    values.amount,
       billMonth: values.billMonthDayjs.format('YYYY-MM'),
       paidDate:  values.paidDateDayjs.format('YYYY-MM-DD'),
@@ -72,6 +92,40 @@ export function BillFormModal({ open, editing, onClose, onSave }: Props) {
           <Select options={
             BILL_LOCATIONS.map(v => ({ value: v, label: BILL_LOCATION_LABELS[v] }))
           } />
+        </Form.Item>
+
+        <Form.Item name="name" label="Name">
+          <Select
+            allowClear
+            showSearch
+            placeholder="Select or add a name"
+            options={billNames.map(n => ({ value: n.name, label: n.name }))}
+            dropdownRender={menu => (
+              <>
+                {menu}
+                <div style={{ padding: '8px', borderTop: '1px solid #f0f0f0' }}>
+                  <Space.Compact style={{ width: '100%' }}>
+                    <Input
+                      placeholder="New name..."
+                      value={newNameInput}
+                      onChange={e => setNewNameInput(e.target.value)}
+                      onPressEnter={handleAddName}
+                      size="small"
+                    />
+                    <Button
+                      type="primary"
+                      icon={<PlusOutlined />}
+                      onClick={handleAddName}
+                      loading={addingName}
+                      size="small"
+                    >
+                      Add
+                    </Button>
+                  </Space.Compact>
+                </div>
+              </>
+            )}
+          />
         </Form.Item>
 
         <Form.Item name="amount" label="Amount (₫)" rules={[{ required: true, type: 'number', min: 0 }]}>

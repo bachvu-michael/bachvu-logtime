@@ -120,10 +120,17 @@ export const BILL_LOCATION_LABELS: Record<BillLocation, string> = {
 
 export const BILL_LOCATIONS: BillLocation[] = ['home', 'room', 'other'];
 
+export interface BillName {
+  id:        string;
+  name:      string;
+  createdAt: number;
+}
+
 export interface Bill {
   id:        string;
   billType:  BillType;
   location:  BillLocation;
+  name?:     string;
   amount:    number;       // in VND
   billMonth: string;       // YYYY-MM — the month this bill covers
   paidDate:  string;       // YYYY-MM-DD — when it was actually paid
@@ -132,3 +139,13 @@ export interface Bill {
 }
 
 export type BillInput = Omit<Bill, 'id' | 'createdAt'>;
+
+export const BILL_NAME_COLORS = [
+  '#4361EE', '#F59E0B', '#10B981', '#EF4444', '#8B5CF6',
+  '#EC4899', '#06B6D4', '#F97316', '#14B8A6', '#84CC16',
+];
+
+export function getBillNameColor(allNames: string[], name: string): string {
+  const idx = allNames.indexOf(name);
+  return BILL_NAME_COLORS[idx % BILL_NAME_COLORS.length] ?? '#64748B';
+}

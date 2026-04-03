@@ -68,6 +68,7 @@ model Bill {
   id        String   @id @db.VarChar(36)
   billType  String   @map("bill_type") @db.VarChar(20)
   location  String   @db.VarChar(20)
+  name      String?  @db.VarChar(100)
   amount    Decimal  @db.Decimal(15, 2)
   billMonth String   @map("bill_month") @db.VarChar(7)  // YYYY-MM
   paidDate  DateTime @map("paid_date") @db.Date
@@ -76,5 +77,14 @@ model Bill {
 
   @@index([billMonth])
   @@index([location])
+  @@index([name])
   @@map("bills")
+}
+
+model BillName {
+  id        String @id @db.VarChar(36)
+  name      String @unique @db.VarChar(100)
+  createdAt BigInt @map("created_at")
+
+  @@map("bill_names")
 }
