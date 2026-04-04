@@ -140,6 +140,65 @@ export interface Bill {
 
 export type BillInput = Omit<Bill, 'id' | 'createdAt'>;
 
+// ── Personal Events ───────────────────────────────────────────────────────────
+export type EventReminder = 'none' | 'on_day' | '1_day' | '3_days' | '1_week' | 'on_miss';
+
+export const EVENT_REMINDER_LABELS: Record<EventReminder, string> = {
+  none:    'Không nhắc',
+  on_day:  'Nhắc vào ngày diễn ra',
+  '1_day': 'Nhắc trước 1 ngày',
+  '3_days':'Nhắc trước 3 ngày',
+  '1_week':'Nhắc trước 1 tuần',
+  on_miss: 'Nhắc khi bỏ lỡ',
+};
+
+export interface PersonalEvent {
+  id:          string;
+  title:       string;
+  date:        string;          // YYYY-MM-DD
+  time?:       string;          // HH:MM
+  eventType:   string;          // EventType.name
+  description?: string;
+  reminder:    EventReminder;
+  completed:   boolean;
+  createdAt:   number;
+}
+
+export type PersonalEventInput = Omit<PersonalEvent, 'id' | 'createdAt'>;
+
+export interface EventType {
+  id:        string;
+  name:      string;
+  color:     string;
+  createdAt: number;
+}
+
+export const DEFAULT_EVENT_TYPES: Omit<EventType, 'id' | 'createdAt'>[] = [
+  { name: 'Sức khoẻ',  color: '#3B82F6' },
+  { name: 'Sinh nhật', color: '#EC4899' },
+  { name: 'Hẹn gặp',  color: '#8B5CF6' },
+  { name: 'Nhắc việc', color: '#F59E0B' },
+  { name: 'Du lịch',  color: '#10B981' },
+  { name: 'Khác',     color: '#64748B' },
+];
+
+export const EVENT_TYPE_PALETTE = [
+  '#3B82F6','#EC4899','#8B5CF6','#F59E0B','#10B981','#EF4444',
+  '#06B6D4','#F97316','#84CC16','#64748B','#A855F7','#14B8A6',
+];
+
+/** Return true when an event's reminder is currently active */
+export function isActiveReminder(event: PersonalEvent, today: string): boolean {
+  if (event.completed || event.reminder === 'none') return false;
+  if (event.reminder === 'on_miss') return today > event.date;
+  const offsets: Record<string, number> = { on_day: 0, '1_day': 1, '3_days': 3, '1_week': 7 };
+  const offset = offsets[event.reminder] ?? 0;
+  const d = new Date(event.date + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() - offset);
+  const reminderStart = d.toISOString().split('T')[0];
+  return today >= reminderStart && today <= event.date;
+}
+
 // ── Cycle (Billings Method) ───────────────────────────────────────────────────
 export type CycleBleeding  = 'none' | 'spotting' | 'light' | 'medium' | 'heavy';
 export type CycleMucus     = 'none' | 'sticky' | 'creamy' | 'watery' | 'egg_white';

@@ -1,44 +1,210 @@
-import { useEffect, useState, useCallback } from 'react';
-import { Alert, Spin } from 'antd';
-import { LogEntry } from '../types';
-import { fetchLogs } from '../api/logs';
-import { CalendarView } from '../components/calendar/CalendarView';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Button, Select, Space, Typography, message, Badge } from 'antd';
+import { PlusOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
+import { PersonalEvent, PersonalEventInput, EventType, isActiveReminder } from '../types';
+import { fetchEvents, createEvent, updateEvent, deleteEvent, fetchEventTypes } from '../api/events';
+import { EventCalendar } from '../components/calendar/EventCalendar';
+import { EventFormModal } from '../components/calendar/EventFormModal';
+import { ReminderBanner } from '../components/calendar/ReminderBanner';
+
+const { Text } = Typography;
+
+function currentYear()  { return new Date().getFullYear(); }
+function currentMonth() { return new Date().getMonth() + 1; }
+
+function yearOptions() {
+  const y = currentYear();
+  return [y + 1, y, y - 1].map(yr => ({ value: yr, label: String(yr) }));
+}
+
+const MONTH_NAMES = [
+  'Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6',
+  'Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12',
+];
 
 export function CalendarPage() {
-  const [logs, setLogs]       = useState<LogEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState('');
+  const [events,  setEvents]  = useState<PersonalEvent[]>([]);
+  const [types,   setTypes]   = useState<EventType[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [year,    setYear]    = useState(currentYear());
+  const [month,   setMonth]   = useState(currentMonth());
+  const [modal, setModal] = useState<{ open: boolean; date?: string; editing: PersonalEvent | null }>({
+    open: false, editing: null,
+  });
 
-  const load = useCallback(async () => {
+  const monthStr = `${year}-${String(month).padStart(2, '0')}`;
+
+  const loadEvents = useCallback(async () => {
+    setLoading(true);
     try {
-      setError('');
-      const data = await fetchLogs();
-      setLogs(data);
+      const data = await fetchEvents({ month: monthStr });
+      setEvents(data);
     } catch {
-      setError('Cannot connect to server. Make sure the server is running on port 3001.');
+      message.error('Không thể tải sự kiện');
     } finally {
       setLoading(false);
     }
+  }, [monthStr]);
+
+  useEffect(() => { loadEvents(); }, [loadEvents]);
+
+  useEffect(() => {
+    fetchEventTypes().then(setTypes).catch(() => {});
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  function prevMonth() {
+    if (month === 1) { setYear(y => y - 1); setMonth(12); }
+    else setMonth(m => m - 1);
+  }
+  function nextMonth() {
+    if (month === 12) { setYear(y => y + 1); setMonth(1); }
+    else setMonth(m => m + 1);
+  }
+  function goToday() {
+    setYear(currentYear());
+    setMonth(currentMonth());
+  }
+
+  async function handleSave(input: PersonalEventInput) {
+    if (modal.editing) {
+      const updated = await updateEvent(modal.editing.id, input);
+      setEvents(prev => prev.map(e => e.id === updated.id ? updated : e));
+      message.success('Đã cập nhật');
+    } else {
+      const created = await createEvent(input);
+      // only add to state if it belongs to this month
+      if (created.date.startsWith(monthStr)) {
+        setEvents(prev => [...prev, created].sort((a, b) => a.date.localeCompare(b.date)));
+      }
+      message.success('Đã thêm sự kiện');
+    }
+  }
+
+  async function handleDelete(id: string) {
+    await deleteEvent(id);
+    setEvents(prev => prev.filter(e => e.id !== id));
+    message.success('Đã xoá');
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  const activeReminderCount = useMemo(
+    () => events.filter(e => isActiveReminder(e, today)).length,
+    [events, today],
+  );
 
   return (
-    <div className="page-content" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      <div className="page-header">
-        <div className="page-header__left">
-          <h1 className="page-title">Calendar</h1>
-          <p className="page-subtitle">View time logs by month or week</p>
+    <div style={{ padding: '24px', maxWidth: 1200, margin: '0 auto' }}>
+
+      {/* ── Page Header ── */}
+      <div style={{
+        display: 'flex', alignItems: 'flex-start',
+        justifyContent: 'space-between', marginBottom: 24, gap: 16, flexWrap: 'wrap',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{
+            width: 44, height: 44, borderRadius: 10,
+            background: 'linear-gradient(135deg, #4361EE 0%, #06B6D4 100%)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 22, flexShrink: 0,
+            boxShadow: '0 4px 12px rgba(67,97,238,0.35)',
+          }}>
+            📅
+          </div>
+          <div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: '#0F172A', lineHeight: 1.2 }}>
+              Lịch cá nhân
+            </div>
+            <div style={{ fontSize: 13, color: '#64748B', marginTop: 3 }}>
+              Ghi lại sự kiện, hẹn hò và nhắc nhở cá nhân
+            </div>
+          </div>
+        </div>
+
+        <Space wrap>
+          {activeReminderCount > 0 && (
+            <Badge count={activeReminderCount} size="small">
+              <Button style={{ color: '#F59E0B', borderColor: '#FDE68A' }}>
+                🔔 Nhắc nhở
+              </Button>
+            </Badge>
+          )}
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setModal({ open: true, date: undefined, editing: null })}
+          >
+            Thêm sự kiện
+          </Button>
+        </Space>
+      </div>
+
+      {/* ── Reminder Banner ── */}
+      <ReminderBanner />
+
+      {/* ── Nav Bar ── */}
+      <div style={{
+        background: '#fff', border: '1px solid #F1F5F9', borderRadius: 12,
+        padding: '10px 16px', marginBottom: 16,
+        display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+        boxShadow: '0 1px 4px rgba(15,23,42,0.05)',
+      }}>
+        <Button size="small" onClick={goToday} style={{ fontSize: 12 }}>Hôm nay</Button>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <Button size="small" type="text" icon={<LeftOutlined />} onClick={prevMonth} />
+          <Text style={{ fontWeight: 700, minWidth: 110, textAlign: 'center', fontSize: 14 }}>
+            {MONTH_NAMES[month - 1]} {year}
+          </Text>
+          <Button size="small" type="text" icon={<RightOutlined />} onClick={nextMonth} />
+        </div>
+
+        <Select value={year} onChange={setYear} style={{ width: 80 }} size="small" options={yearOptions()} />
+
+        <div style={{ marginLeft: 'auto' }}>
+          <Text style={{ fontSize: 12, color: '#94A3B8' }}>
+            {loading ? 'Đang tải…' : `${events.length} sự kiện`}
+          </Text>
         </div>
       </div>
 
-      {error && <Alert type="error" description={error} showIcon style={{ borderRadius: 10 }} />}
-
-      {loading ? (
-        <Spin style={{ display: 'block', textAlign: 'center', padding: 60 }} />
-      ) : (
-        <CalendarView logs={logs} />
+      {/* ── Type legend ── */}
+      {types.length > 0 && (
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
+          {types.map(t => (
+            <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <span style={{ width: 10, height: 10, borderRadius: '50%', background: t.color, display: 'inline-block' }} />
+              <Text style={{ fontSize: 11, color: '#64748B' }}>{t.name}</Text>
+            </div>
+          ))}
+        </div>
       )}
+
+      {/* ── Calendar ── */}
+      <div style={{
+        background: '#fff', borderRadius: 12, padding: 20,
+        border: '1px solid #F1F5F9',
+        boxShadow: '0 1px 4px rgba(15,23,42,0.05)',
+      }}>
+        <EventCalendar
+          year={year}
+          month={month}
+          events={events}
+          types={types}
+          onDayClick={date => setModal({ open: true, date, editing: null })}
+          onEventClick={ev => setModal({ open: true, date: undefined, editing: ev })}
+        />
+      </div>
+
+      <EventFormModal
+        open={modal.open}
+        date={modal.date}
+        editing={modal.editing}
+        types={types}
+        onClose={() => setModal({ open: false, editing: null })}
+        onSave={handleSave}
+        onDelete={handleDelete}
+        onTypesChange={setTypes}
+      />
     </div>
   );
 }

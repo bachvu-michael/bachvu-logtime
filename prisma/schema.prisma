@@ -89,6 +89,30 @@ model BillName {
   @@map("bill_names")
 }
 
+model PersonalEvent {
+  id          String  @id @db.VarChar(36)
+  title       String  @db.VarChar(255)
+  date        String  @db.VarChar(10)    // YYYY-MM-DD
+  time        String? @db.VarChar(5)     // HH:MM (optional)
+  eventType   String  @db.VarChar(50)    @map("event_type")
+  description String? @db.Text
+  reminder    String  @default("none")   @db.VarChar(20)  // none | on_day | 1_day | 3_days | 1_week | on_miss
+  completed   Boolean @default(false)
+  createdAt   BigInt  @map("created_at")
+
+  @@index([date])
+  @@map("personal_events")
+}
+
+model EventType {
+  id        String @id @db.VarChar(36)
+  name      String @unique @db.VarChar(50)
+  color     String @db.VarChar(20)
+  createdAt BigInt @map("created_at")
+
+  @@map("event_types")
+}
+
 model CycleEntry {
   id        String  @id @db.VarChar(36)
   date      String  @unique @db.VarChar(10)  // YYYY-MM-DD

@@ -11,6 +11,8 @@ import pdfRouter from './routes/pdf.js';
 import billsRouter from './routes/bills.js';
 import billNamesRouter from './routes/billNames.js';
 import cyclesRouter from './routes/cycles.js';
+import eventsRouter from './routes/events.js';
+import eventTypesRouter from './routes/eventTypes.js';
 import { authRouter, requireAuth } from './auth.js';
 
 // Load .env if present (no dotenv dependency needed)
@@ -39,7 +41,9 @@ app.use('/api/invoices', requireAuth, invoicesRouter);
 app.use('/api/pdf',      requireAuth, pdfRouter);
 app.use('/api/bills',      requireAuth, billsRouter);
 app.use('/api/bill-names', requireAuth, billNamesRouter);
-app.use('/api/cycles',     requireAuth, cyclesRouter);
+app.use('/api/cycles',      requireAuth, cyclesRouter);
+app.use('/api/events',      requireAuth, eventsRouter);
+app.use('/api/event-types', requireAuth, eventTypesRouter);
 
 // Serve built frontend in production
 if (process.env.NODE_ENV === 'production') {
