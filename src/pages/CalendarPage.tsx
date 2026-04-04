@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Button, Select, Space, Typography, message, Badge } from 'antd';
+import { Button, Select, Space, Typography, message, Badge, Tabs } from 'antd';
 import { PlusOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { PersonalEvent, PersonalEventInput, EventType, isActiveReminder } from '../types';
 import { fetchEvents, createEvent, updateEvent, deleteEvent, fetchEventTypes } from '../api/events';
 import { EventCalendar } from '../components/calendar/EventCalendar';
 import { EventFormModal } from '../components/calendar/EventFormModal';
 import { ReminderBanner } from '../components/calendar/ReminderBanner';
+import { EventTypesManager } from '../components/calendar/EventTypesManager';
 
 const { Text } = Typography;
 
@@ -22,12 +23,15 @@ const MONTH_NAMES = [
   'Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12',
 ];
 
+const MONTH_OPTIONS = MONTH_NAMES.map((label, i) => ({ value: i + 1, label }));
+
 export function CalendarPage() {
   const [events,  setEvents]  = useState<PersonalEvent[]>([]);
   const [types,   setTypes]   = useState<EventType[]>([]);
   const [loading, setLoading] = useState(false);
   const [year,    setYear]    = useState(currentYear());
   const [month,   setMonth]   = useState(currentMonth());
+  const [tab,     setTab]     = useState<'calendar' | 'types'>('calendar');
   const [modal, setModal] = useState<{ open: boolean; date?: string; editing: PersonalEvent | null }>({
     open: false, editing: null,
   });
@@ -72,7 +76,6 @@ export function CalendarPage() {
       message.success('Đã cập nhật');
     } else {
       const created = await createEvent(input);
-      // only add to state if it belongs to this month
       if (created.date.startsWith(monthStr)) {
         setEvents(prev => [...prev, created].sort((a, b) => a.date.localeCompare(b.date)));
       }
@@ -92,13 +95,18 @@ export function CalendarPage() {
     [events, today],
   );
 
+  const tabItems = [
+    { key: 'calendar', label: '📅 Lịch' },
+    { key: 'types',    label: '🏷 Loại sự kiện' },
+  ];
+
   return (
     <div style={{ padding: '24px', maxWidth: 1200, margin: '0 auto' }}>
 
       {/* ── Page Header ── */}
       <div style={{
         display: 'flex', alignItems: 'flex-start',
-        justifyContent: 'space-between', marginBottom: 24, gap: 16, flexWrap: 'wrap',
+        justifyContent: 'space-between', marginBottom: 20, gap: 16, flexWrap: 'wrap',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{
@@ -128,72 +136,108 @@ export function CalendarPage() {
               </Button>
             </Badge>
           )}
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setModal({ open: true, date: undefined, editing: null })}
-          >
-            Thêm sự kiện
-          </Button>
+          {tab === 'calendar' && (
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setModal({ open: true, date: undefined, editing: null })}
+            >
+              Thêm sự kiện
+            </Button>
+          )}
         </Space>
       </div>
 
       {/* ── Reminder Banner ── */}
       <ReminderBanner />
 
-      {/* ── Nav Bar ── */}
+      {/* ── Main Tabs ── */}
       <div style={{
         background: '#fff', border: '1px solid #F1F5F9', borderRadius: 12,
-        padding: '10px 16px', marginBottom: 16,
-        display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
-        boxShadow: '0 1px 4px rgba(15,23,42,0.05)',
+        boxShadow: '0 1px 4px rgba(15,23,42,0.05)', marginBottom: 16,
       }}>
-        <Button size="small" onClick={goToday} style={{ fontSize: 12 }}>Hôm nay</Button>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Button size="small" type="text" icon={<LeftOutlined />} onClick={prevMonth} />
-          <Text style={{ fontWeight: 700, minWidth: 110, textAlign: 'center', fontSize: 14 }}>
-            {MONTH_NAMES[month - 1]} {year}
-          </Text>
-          <Button size="small" type="text" icon={<RightOutlined />} onClick={nextMonth} />
-        </div>
-
-        <Select value={year} onChange={setYear} style={{ width: 80 }} size="small" options={yearOptions()} />
-
-        <div style={{ marginLeft: 'auto' }}>
-          <Text style={{ fontSize: 12, color: '#94A3B8' }}>
-            {loading ? 'Đang tải…' : `${events.length} sự kiện`}
-          </Text>
-        </div>
-      </div>
-
-      {/* ── Type legend ── */}
-      {types.length > 0 && (
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
-          {types.map(t => (
-            <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <span style={{ width: 10, height: 10, borderRadius: '50%', background: t.color, display: 'inline-block' }} />
-              <Text style={{ fontSize: 11, color: '#64748B' }}>{t.name}</Text>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* ── Calendar ── */}
-      <div style={{
-        background: '#fff', borderRadius: 12, padding: 20,
-        border: '1px solid #F1F5F9',
-        boxShadow: '0 1px 4px rgba(15,23,42,0.05)',
-      }}>
-        <EventCalendar
-          year={year}
-          month={month}
-          events={events}
-          types={types}
-          onDayClick={date => setModal({ open: true, date, editing: null })}
-          onEventClick={ev => setModal({ open: true, date: undefined, editing: ev })}
+        <Tabs
+          activeKey={tab}
+          onChange={k => setTab(k as 'calendar' | 'types')}
+          items={tabItems}
+          style={{ padding: '0 16px' }}
+          tabBarStyle={{ marginBottom: 0 }}
         />
       </div>
+
+      {/* ── Calendar Tab ── */}
+      {tab === 'calendar' && (
+        <>
+          {/* Nav Bar */}
+          <div style={{
+            background: '#fff', border: '1px solid #F1F5F9', borderRadius: 12,
+            padding: '10px 16px', marginBottom: 16,
+            display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+            boxShadow: '0 1px 4px rgba(15,23,42,0.05)',
+          }}>
+            <Button size="small" onClick={goToday} style={{ fontSize: 12 }}>Hôm nay</Button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Button size="small" type="text" icon={<LeftOutlined />} onClick={prevMonth} />
+              <Text style={{ fontWeight: 700, minWidth: 110, textAlign: 'center', fontSize: 14 }}>
+                {MONTH_NAMES[month - 1]} {year}
+              </Text>
+              <Button size="small" type="text" icon={<RightOutlined />} onClick={nextMonth} />
+            </div>
+
+            <Select
+              value={month}
+              onChange={setMonth}
+              style={{ width: 110 }}
+              size="small"
+              options={MONTH_OPTIONS}
+            />
+            <Select
+              value={year}
+              onChange={setYear}
+              style={{ width: 80 }}
+              size="small"
+              options={yearOptions()}
+            />
+
+            <div style={{ marginLeft: 'auto' }}>
+              <Text style={{ fontSize: 12, color: '#94A3B8' }}>
+                {loading ? 'Đang tải…' : `${events.length} sự kiện`}
+              </Text>
+            </div>
+          </div>
+
+          {/* Calendar Grid */}
+          <div style={{
+            background: '#fff', borderRadius: 12, padding: 20,
+            border: '1px solid #F1F5F9',
+            boxShadow: '0 1px 4px rgba(15,23,42,0.05)',
+          }}>
+            <EventCalendar
+              year={year}
+              month={month}
+              events={events}
+              types={types}
+              onDayClick={date => setModal({ open: true, date, editing: null })}
+              onEventClick={ev => setModal({ open: true, date: undefined, editing: ev })}
+            />
+          </div>
+        </>
+      )}
+
+      {/* ── Types Tab ── */}
+      {tab === 'types' && (
+        <div style={{
+          background: '#fff', borderRadius: 12, padding: 24,
+          border: '1px solid #F1F5F9',
+          boxShadow: '0 1px 4px rgba(15,23,42,0.05)',
+        }}>
+          <div style={{ fontSize: 15, fontWeight: 600, color: '#0F172A', marginBottom: 16 }}>
+            Quản lý loại sự kiện
+          </div>
+          <EventTypesManager types={types} onChange={setTypes} />
+        </div>
+      )}
 
       <EventFormModal
         open={modal.open}

@@ -55,6 +55,15 @@ export async function createEventType(name: string, color: string): Promise<Even
   return res.json();
 }
 
+export async function updateEventType(id: string, color: string): Promise<EventType> {
+  const res = await authFetch(`/api/event-types/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ color }),
+  });
+  return res.json();
+}
+
 export async function deleteEventType(id: string): Promise<void> {
   await authFetch(`/api/event-types/${id}`, { method: 'DELETE' });
 }
